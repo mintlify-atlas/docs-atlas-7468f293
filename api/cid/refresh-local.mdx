@@ -1,0 +1,91 @@
+---
+title: 'Refresh CID from Local File'
+description: 'POST /cid/refresh-local - Load CID codes from a local HTML file'
+---
+
+## POST /cid/refresh-local
+
+Loads CID (International Classification of Diseases) codes from a locally saved HTML file and updates the database.
+
+### Query Parameters
+
+<ParamField query="path" type="string" required>
+  Absolute file system path to the HTML file containing CID codes (e.g., `/path/to/cid-data.html`)
+</ParamField>
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message with the total number of CID codes processed from the local file
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST "http://localhost:8080/cid/refresh-local?path=/app/data/cid-codes.html"
+```
+
+```javascript JavaScript
+const filePath = '/app/data/cid-codes.html';
+const response = await fetch(`http://localhost:8080/cid/refresh-local?path=${encodeURIComponent(filePath)}`, {
+  method: 'POST'
+});
+const result = await response.json();
+console.log(result);
+```
+
+### Example Response
+
+```json 200 OK
+"CIDs atualizados a partir do arquivo local. Total processado: 15234"
+```
+
+### Implementation Details
+
+From `CidController.java:42-46`:
+
+```java
+@PostMapping("/refresh-local")
+public ResponseEntity<String> refreshLocal(@RequestParam("path") String path) {
+    int count = cidService.refreshFromLocal(Path.of(path));
+    return ResponseEntity.ok("CIDs atualizados a partir do arquivo local. Total processado: " + count);
+}
+```
+
+This endpoint:
+1. Reads the HTML file from the specified path
+2. Parses the CID code data structure
+3. Updates or inserts codes into the database
+4. Returns the total count of processed codes
+
+<Warning>
+**Security Considerations**:
+- This endpoint requires access to the server's file system
+- Ensure the path is within an allowed directory to prevent path traversal attacks
+- Validate file permissions before deployment
+- Consider restricting this endpoint to admin users only
+</Warning>
+
+### Use Cases
+
+- Offline database initialization when internet access is limited
+- Testing with custom CID datasets
+- Importing CID codes from previously downloaded DATASUS files
+- Development environments without external network access
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | CID codes successfully loaded from local file |
+| 400 | Invalid path or path parameter missing |
+| 404 | File not found at specified path |
+| 500 | Error reading or parsing the file |
+
+<Info>
+For downloading CID codes directly from DATASUS servers, use `POST /cid/refresh` instead.
+</Info>
+
+<Note>
+The HTML file format must match the expected DATASUS structure for proper parsing.
+</Note>

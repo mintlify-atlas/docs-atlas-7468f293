@@ -1,0 +1,117 @@
+---
+title: 'Get Health News'
+description: 'GET /api/news - Retrieve latest health news articles'
+---
+
+## GET /api/news
+
+Retrieves the latest health news articles, scraped and stored in the database.
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="5">
+  Maximum number of news articles to return (default: 5)
+</ParamField>
+
+### Response
+
+<ResponseField name="content" type="News[]">
+  Paginated array of news articles
+  
+  <Expandable title="News Object">
+    <ResponseField name="id" type="integer">
+      Unique identifier for the news article
+    </ResponseField>
+    <ResponseField name="title" type="string">
+      Article title/headline
+    </ResponseField>
+    <ResponseField name="content" type="string">
+      Full text content of the news article
+    </ResponseField>
+    <ResponseField name="publishedDate" type="string">
+      Publication date in ISO 8601 format
+    </ResponseField>
+    <ResponseField name="source" type="string">
+      Source of the news article (e.g., "Ministério da Saúde")
+    </ResponseField>
+    <ResponseField name="url" type="string">
+      Original URL of the news article
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl "http://localhost:8080/api/news?limit=3"
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/api/news?limit=3');
+const news = await response.json();
+console.log(news);
+```
+
+### Example Response
+
+```json 200 OK
+{
+  "content": [
+    {
+      "id": 1,
+      "title": "Ministério da Saúde anuncia nova campanha de vacinação",
+      "content": "O Ministério da Saúde anunciou hoje o início de uma nova campanha nacional de vacinação...",
+      "publishedDate": "2024-03-15T10:30:00Z",
+      "source": "Ministério da Saúde",
+      "url": "https://www.gov.br/saude/pt-br/assuntos/noticias/2024/marco/..."
+    },
+    {
+      "id": 2,
+      "title": "Novos estudos mostram eficácia de tratamento para diabetes",
+      "content": "Pesquisadores brasileiros publicaram novos dados sobre tratamento inovador...",
+      "publishedDate": "2024-03-14T15:20:00Z",
+      "source": "Portal da Saúde",
+      "url": "https://portalsaude.gov.br/noticias/..."
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 3
+  },
+  "totalElements": 150,
+  "totalPages": 50
+}
+```
+
+### Implementation Details
+
+From `NewsController.java:18-21`:
+
+```java
+@GetMapping
+public Page<News> listarNoticias(@RequestParam(defaultValue = "5") int limit) throws IOException {
+    return newsService.getLatestNews(limit);
+}
+```
+
+### Use Cases
+
+- Display health news on the application dashboard
+- Keep patients and doctors informed about health updates
+- Show relevant medical news during consultations
+- Integrate with the AI chatbot for context-aware responses
+
+<Info>
+The news articles are scraped from official Brazilian health sources and stored in the database. The scraping process is managed by the Scraping service.
+</Info>
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | News articles successfully retrieved |
+| 500 | Error retrieving news from database |
+
+<Note>
+This endpoint returns paginated results. Use the pagination metadata to navigate through multiple pages of news.
+</Note>

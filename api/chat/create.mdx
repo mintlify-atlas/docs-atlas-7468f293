@@ -1,0 +1,166 @@
+---
+title: 'AI Chat'
+description: 'POST /api/chat - Chat with AI assistant using Ollama'
+---
+
+## POST /api/chat
+
+Streams responses from the AI assistant powered by Ollama. Supports automatic context injection based on question content.
+
+### Request Body
+
+<ParamField body="model" type="string" required>
+  The Ollama model to use (e.g., "llama2", "mistral", "medllama2")
+</ParamField>
+
+<ParamField body="prompt" type="string" required>
+  The user's question or message to the AI
+</ParamField>
+
+<ParamField body="useContext" type="boolean" default="automatic">
+  Whether to inject medical context. If not specified, automatically determined based on keywords in the prompt
+</ParamField>
+
+<ParamField body="instruction" type="string">
+  Custom system instruction for the AI. Defaults to: "Responda com base EXCLUSIVA no contexto fornecido..."
+</ParamField>
+
+<ParamField body="maxItems" type="integer" default="500">
+  Maximum number of context items to include (when context is used)
+</ParamField>
+
+<ParamField body="maxChars" type="integer" default="12000">
+  Maximum characters of context to include (when context is used)
+</ParamField>
+
+### Response
+
+The response is **streamed** using Server-Sent Events (SSE) format with `Content-Type: application/octet-stream`.
+
+Each line contains a JSON object with the AI's response chunk:
+
+<ResponseField name="response" type="string">
+  Partial text response from the AI model
+</ResponseField>
+
+<ResponseField name="done" type="boolean">
+  Indicates if the response is complete
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:8080/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama2",
+    "prompt": "O que é diabetes?"
+  }' \
+  --no-buffer
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'llama2',
+    prompt: 'O que é diabetes?'
+  })
+});
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  
+  const chunk = decoder.decode(value);
+  const lines = chunk.split('\n').filter(line => line.trim());
+  
+  for (const line of lines) {
+    const data = JSON.parse(line);
+    process.stdout.write(data.response || '');
+  }
+}
+```
+
+### Example Response Stream
+
+```json
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":"Diabetes","done":false}
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":" é uma","done":false}
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":" doença crônica","done":false}
+...
+{"model":"llama2","created_at":"2024-03-15T10:30:01Z","response":".","done":true}
+```
+
+### Automatic Context Detection
+
+The system automatically detects if the question would benefit from medical context based on keywords:
+
+**Context Keywords:**
+- CID-related: "cid", "código", "doença", "diagnóstico", "classificação"
+- News-related: "notícia", "news", "governo", "saúde pública", "ministério"
+- Medical skills: "habilidade", "médica", "especialidade", "cfm", "resolução"
+- Vigilance: "vigilância", "guia", "termo", "definição"
+- General medical: "sintomas", "tratamento", "prevenção", "epidemiologia"
+
+When context keywords are detected, the system:
+1. Builds relevant context from the medical knowledge base
+2. Injects it into the prompt before sending to Ollama
+3. Instructs the AI to answer based on the provided context
+
+### Implementation Details
+
+From `OllamaChatController.java:27-106`:
+
+```java
+@PostMapping(value = "/chat", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+public ResponseBodyEmitter streamOllama(@RequestBody ChatRequest request) {
+    // Determines if context should be used
+    boolean shouldUseContext = Boolean.TRUE.equals(request.getUseContext()) || 
+                              shouldUseContextAutomatically(request.getPrompt());
+    
+    if (shouldUseContext) {
+        // Builds context and injects into prompt
+        String contexto = contextService.buildContextFromQuestion(...);
+        finalPrompt = instruction + "[CONTEXTO]\n" + contexto + 
+                     "[PERGUNTA]\n" + prompt;
+    }
+    // Streams response from Ollama
+}
+```
+
+### Use Cases
+
+- Medical consultation assistance
+- Patient education and information
+- Disease and symptom lookup
+- Treatment information
+- Medical news and updates
+- General health questions
+
+<Warning>
+**Prerequisites:**
+- Ollama must be running locally at `http://localhost:11434`
+- The specified model must be pulled/available in Ollama
+- Install Ollama: [https://ollama.ai](https://ollama.ai)
+</Warning>
+
+<Info>
+For explicitly providing full medical context, use `POST /api/chat/with-context` instead.
+</Info>
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | Streaming response in progress |
+| 400 | Invalid request (missing model or prompt) |
+| 500 | Error connecting to Ollama or streaming failed |
+
+<Note>
+The streaming response allows for real-time display of the AI's answer as it's being generated, providing a better user experience.
+</Note>

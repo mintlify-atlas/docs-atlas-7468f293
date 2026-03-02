@@ -1,0 +1,72 @@
+---
+title: 'Refresh CID Database'
+description: 'POST /cid/refresh - Download and update CID codes from DATASUS'
+---
+
+## POST /cid/refresh
+
+Downloads the latest CID (International Classification of Diseases) codes from DATASUS (Brazilian Ministry of Health data system) and updates the database.
+
+### Request
+
+No parameters required. This endpoint fetches data from the remote DATASUS source.
+
+### Response
+
+<ResponseField name="message" type="string">
+  Success message with the total number of CID codes processed
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:8080/cid/refresh
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/cid/refresh', {
+  method: 'POST'
+});
+const result = await response.json();
+console.log(result);
+```
+
+### Example Response
+
+```json 200 OK
+"CIDs atualizados. Total processado: 15234"
+```
+
+### Implementation Details
+
+This endpoint:
+1. Connects to the DATASUS remote server
+2. Downloads the latest CID code database
+3. Parses the data (typically HTML format)
+4. Updates or inserts codes into the local database
+5. Returns the total count of processed codes
+
+<Warning>
+This is an administrative operation that may take several seconds to complete depending on the data size and network speed. Ensure proper timeout settings for HTTP clients.
+</Warning>
+
+### Use Cases
+
+- Initial database population with CID codes
+- Periodic updates to keep CID codes current
+- Sync with official DATASUS database after updates
+
+<Info>
+For loading CID codes from a local file instead of remote download, use `POST /cid/refresh-local`.
+</Info>
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | CID codes successfully refreshed |
+| 500 | Error connecting to DATASUS or parsing data |
+
+<Note>
+This operation requires network connectivity to DATASUS servers. Ensure firewall rules allow outbound connections.
+</Note>

@@ -127,6 +127,30 @@
               "api/admin/get",
               "api/admin/delete"
             ]
+          },
+          {
+            "group": "CID Management",
+            "pages": [
+              "api/cid/list",
+              "api/cid/get",
+              "api/cid/refresh",
+              "api/cid/refresh-local",
+              "api/cid/delete-one",
+              "api/cid/delete-all"
+            ]
+          },
+          {
+            "group": "Health News",
+            "pages": [
+              "api/news/get"
+            ]
+          },
+          {
+            "group": "AI Assistant",
+            "pages": [
+              "api/chat/create",
+              "api/chat/with-context"
+            ]
           }
         ]
       }

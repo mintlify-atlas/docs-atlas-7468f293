@@ -1,0 +1,69 @@
+---
+title: 'List CID Codes'
+description: 'GET /cid - Retrieve all CID codes from the database'
+---
+
+## GET /cid
+
+Retrieves all CID (International Classification of Diseases) codes stored in the database.
+
+### Request
+
+No parameters required.
+
+### Response
+
+<ResponseField name="array" type="Cid[]">
+  Array of CID code objects
+  
+  <Expandable title="Cid Object">
+    <ResponseField name="code" type="string">
+      The CID code identifier (e.g., "A00", "B15.0")
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Description of the disease or condition
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl http://localhost:8080/cid
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/cid');
+const cids = await response.json();
+console.log(cids);
+```
+
+### Example Response
+
+```json
+[
+  {
+    "code": "A00",
+    "description": "Cólera"
+  },
+  {
+    "code": "A01.0",
+    "description": "Febre tifóide"
+  },
+  {
+    "code": "B15.0",
+    "description": "Hepatite A com coma hepático"
+  }
+]
+```
+
+### Use Cases
+
+- Populate diagnosis dropdowns in the UI
+- Search for disease codes
+- Validate diagnosis codes
+- Display available CID codes to doctors
+
+<Note>
+This endpoint returns all CID codes in the database. For searching a specific code, use `GET /cid/{code}`.
+</Note>

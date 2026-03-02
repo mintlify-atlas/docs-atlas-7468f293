@@ -1,0 +1,90 @@
+---
+title: 'Delete All CID Codes'
+description: 'DELETE /cid - Remove all CID codes from the database'
+---
+
+## DELETE /cid
+
+Removes all CID (International Classification of Diseases) codes from the database, effectively clearing the entire CID table.
+
+### Request
+
+No parameters required.
+
+### Response
+
+Returns HTTP 204 No Content on successful deletion of all records.
+
+### Example Request
+
+```bash cURL
+curl -X DELETE http://localhost:8080/cid
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/cid', {
+  method: 'DELETE'
+});
+
+if (response.status === 204) {
+  console.log('All CID codes deleted successfully');
+}
+```
+
+### Response Codes
+
+| Status Code | Description |
+|------------|-------------|
+| 204 | All CID codes successfully deleted |
+| 500 | Error occurred during deletion |
+
+### Implementation Details
+
+From `CidController.java:56-60`:
+
+```java
+@DeleteMapping
+public ResponseEntity<Void> deleteAll() {
+    cidService.deleteAll();
+    return ResponseEntity.noContent().build();
+}
+```
+
+<Warning>
+**CRITICAL - Destructive Operation**:
+- This operation permanently deletes **ALL** CID codes from the database
+- This action **cannot be undone**
+- All CID codes will need to be re-imported using `/cid/refresh` or `/cid/refresh-local`
+- May break existing diagnoses that reference CID codes
+- **Strongly recommend** backing up the database before using this endpoint
+- Should be **restricted to system administrators only**
+</Warning>
+
+### Use Cases
+
+- Database reset before fresh import of CID codes
+- Testing and development environment cleanup
+- Preparing for a complete CID database refresh
+- Migration scenarios requiring clean slate
+
+### Recovery Steps
+
+After clearing all CID codes, repopulate the database by:
+
+1. **From DATASUS** (recommended):
+   ```bash
+   curl -X POST http://localhost:8080/cid/refresh
+   ```
+
+2. **From local file**:
+   ```bash
+   curl -X POST "http://localhost:8080/cid/refresh-local?path=/path/to/file.html"
+   ```
+
+<Info>
+For removing a single CID code instead of all codes, use `DELETE /cid/{code}`.
+</Info>
+
+<Note>
+This operation should only be performed during maintenance windows or in non-production environments.
+</Note>

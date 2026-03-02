@@ -1,0 +1,76 @@
+---
+title: 'Delete CID Code'
+description: 'DELETE /cid/{code} - Remove a specific CID code from the database'
+---
+
+## DELETE /cid/{code}
+
+Removes a specific CID (International Classification of Diseases) code from the database.
+
+### Path Parameters
+
+<ParamField path="code" type="string" required>
+  The CID code identifier to delete (e.g., "A00", "B15.0")
+</ParamField>
+
+### Response
+
+Returns HTTP 204 No Content on successful deletion.
+
+### Example Request
+
+```bash cURL
+curl -X DELETE http://localhost:8080/cid/A00
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/cid/A00', {
+  method: 'DELETE'
+});
+
+if (response.status === 204) {
+  console.log('CID code deleted successfully');
+}
+```
+
+### Response Codes
+
+| Status Code | Description |
+|------------|-------------|
+| 204 | CID code successfully deleted |
+| 404 | CID code not found |
+
+### Implementation Details
+
+From `CidController.java:49-53`:
+
+```java
+@DeleteMapping("/{code}")
+public ResponseEntity<Void> deleteOne(@PathVariable String code) {
+    cidService.deleteOne(code);
+    return ResponseEntity.noContent().build();
+}
+```
+
+<Warning>
+**Important Considerations**:
+- This operation is permanent and cannot be undone
+- Deleting a CID code may affect existing diagnoses that reference it
+- Consider the impact on related records before deletion
+- This should be restricted to administrator users only
+</Warning>
+
+### Use Cases
+
+- Remove outdated or deprecated CID codes
+- Clean up incorrectly imported codes
+- Database maintenance operations
+- Testing and development cleanup
+
+<Info>
+To remove all CID codes at once, use `DELETE /cid` (without a code parameter).
+</Info>
+
+<Note>
+Before deleting a CID code, verify that no active diagnoses are using it to prevent referential integrity issues.
+</Note>

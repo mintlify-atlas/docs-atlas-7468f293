@@ -1,0 +1,68 @@
+---
+title: 'Get CID Code'
+description: 'GET /cid/{code} - Retrieve a specific CID code by identifier'
+---
+
+## GET /cid/{code}
+
+Retrieves a specific CID (International Classification of Diseases) code from the database.
+
+### Path Parameters
+
+<ParamField path="code" type="string" required>
+  The CID code identifier (e.g., "A00", "B15.0")
+</ParamField>
+
+### Response
+
+<ResponseField name="code" type="string">
+  The CID code identifier
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Description of the disease or condition
+</ResponseField>
+
+### Example Request
+
+```bash cURL
+curl http://localhost:8080/cid/A00
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/cid/A00');
+const cid = await response.json();
+console.log(cid);
+```
+
+### Example Response
+
+```json 200 OK
+{
+  "code": "A00",
+  "description": "Cólera"
+}
+```
+
+```json 404 Not Found
+{
+  "error": "CID code not found"
+}
+```
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | CID code found and returned |
+| 404 | CID code not found in database |
+
+### Use Cases
+
+- Validate a CID code before creating a diagnosis
+- Display disease information for a specific code
+- Look up disease descriptions
+
+<Note>
+CID codes follow the ICD-10 (International Classification of Diseases, 10th Revision) standard.
+</Note>

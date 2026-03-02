@@ -1,0 +1,161 @@
+---
+title: 'AI Chat with Full Context'
+description: 'POST /api/chat/with-context - Chat with AI using complete medical knowledge base'
+---
+
+## POST /api/chat/with-context
+
+Streams responses from the AI assistant with the **complete medical knowledge base** as context, including all scraped medical data.
+
+### Request Body
+
+<ParamField body="model" type="string" required>
+  The Ollama model to use (e.g., "llama2", "mistral", "medllama2")
+</ParamField>
+
+<ParamField body="question" type="string" required>
+  The user's question to the AI
+</ParamField>
+
+<ParamField body="instruction" type="string">
+  Custom system instruction. Defaults to: "Responda com base EXCLUSIVA no contexto. Se algo não estiver no contexto, diga que não há informação suficiente."
+</ParamField>
+
+<ParamField body="maxItems" type="integer" default="500">
+  Maximum number of scraped items to include in context
+</ParamField>
+
+<ParamField body="maxChars" type="integer" default="12000">
+  Maximum total characters of context (prevents token overflow)
+</ParamField>
+
+### Response
+
+The response is **streamed** using Server-Sent Events (SSE) format with `Content-Type: application/octet-stream`.
+
+Each line contains a JSON object with the AI's response chunk.
+
+### Example Request
+
+```bash cURL
+curl -X POST http://localhost:8080/api/chat/with-context \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama2",
+    "question": "Quais são os sintomas da dengue segundo as últimas notícias?",
+    "maxItems": 300,
+    "maxChars": 10000
+  }' \
+  --no-buffer
+```
+
+```javascript JavaScript
+const response = await fetch('http://localhost:8080/api/chat/with-context', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'llama2',
+    question: 'Quais são os sintomas da dengue segundo as últimas notícias?',
+    maxItems: 300,
+    maxChars: 10000
+  })
+});
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  
+  const chunk = decoder.decode(value);
+  const lines = chunk.split('\n').filter(line => line.trim());
+  
+  for (const line of lines) {
+    const data = JSON.parse(line);
+    process.stdout.write(data.response || '');
+  }
+}
+```
+
+### Example Response Stream
+
+```json
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":"Segundo","done":false}
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":" as informações","done":false}
+{"model":"llama2","created_at":"2024-03-15T10:30:00Z","response":" do contexto fornecido","done":false}
+...
+{"model":"llama2","created_at":"2024-03-15T10:30:01Z","response":".","done":true}
+```
+
+### How It Works
+
+From `OllamaChatController.java:108-176`:
+
+1. **Context Building**: Retrieves ALL scraped medical data
+   ```java
+   String contexto = contextService.buildAllContext(maxItems, maxChars);
+   ```
+
+2. **Prompt Construction**: Combines instruction + context + question
+   ```java
+   String prompt = instruction + "\n\n[CONTEXTO]\n" + contexto + 
+                   "\n\n[PERGUNTA]\n" + question + "\n\nResposta objetiva:";
+   ```
+
+3. **Ollama Streaming**: Sends to Ollama and streams back the response
+
+### Context Sources
+
+The context includes data from all scraped sources:
+- **CID Codes**: Disease classifications and descriptions
+- **Health News**: Latest medical news from government sources
+- **Medical Skills**: CFM-defined medical specialties and abilities
+- **Vigilance Guides**: Public health surveillance definitions
+
+### Differences from `/api/chat`
+
+| Feature | `/api/chat` | `/api/chat/with-context` |
+|---------|-------------|--------------------------|
+| Context | Automatic (keyword-based) or optional | Always includes ALL context |
+| Context Size | Targeted/filtered | Complete knowledge base |
+| Use Case | General questions | Questions needing comprehensive medical data |
+| Performance | Faster (less context) | Slower (more context) |
+
+### Use Cases
+
+- Complex medical queries requiring multiple data sources
+- Questions about current health news and guidelines
+- Comprehensive disease information lookup
+- Correlating symptoms with recent health alerts
+- Medical research and information gathering
+
+<Warning>
+**Prerequisites:**
+- Ollama must be running locally at `http://localhost:11434`
+- The specified model must support large context windows
+- Consider using models optimized for medical domains (e.g., "medllama2")
+</Warning>
+
+<Info>
+For simpler questions or when you want targeted context, use `POST /api/chat` which automatically detects relevant context.
+</Info>
+
+### Performance Considerations
+
+- **Context Size**: The `maxChars` parameter prevents token overflow. Adjust based on your Ollama model's context window
+- **Response Time**: Larger context = longer initial processing time
+- **Memory**: Streaming response uses minimal memory on the server
+- **Ollama Model**: Choose a model with appropriate context window size (e.g., 8K, 32K, 128K tokens)
+
+### Error Responses
+
+| Status Code | Description |
+|------------|-------------|
+| 200 | Streaming response in progress |
+| 400 | Invalid request (missing model or question) |
+| 500 | Error connecting to Ollama, context building failed, or streaming error |
+
+<Note>
+This endpoint is ideal for the medical chatbot feature where comprehensive, accurate medical information is critical.
+</Note>

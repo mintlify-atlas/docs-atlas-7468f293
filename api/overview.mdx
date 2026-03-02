@@ -163,6 +163,24 @@ The Med Agenda API provides the following resource endpoints:
 - **GET** `/admin/{id}` - Get admin by ID
 - **DELETE** `/admin/{id}` - Delete admin user
 
+### CID Management
+
+- **GET** `/cid` - List all CID codes
+- **GET** `/cid/{code}` - Get specific CID code
+- **POST** `/cid/refresh` - Refresh CID database from DATASUS
+- **POST** `/cid/refresh-local` - Load CID codes from local file
+- **DELETE** `/cid/{code}` - Delete specific CID code
+- **DELETE** `/cid` - Delete all CID codes
+
+### Health News
+
+- **GET** `/api/news` - Get latest health news articles
+
+### AI Assistant
+
+- **POST** `/api/chat` - Chat with AI assistant (auto-context)
+- **POST** `/api/chat/with-context` - Chat with full medical knowledge base
+
 ## Database Configuration
 
 The API connects to a PostgreSQL database with the following default configuration:
