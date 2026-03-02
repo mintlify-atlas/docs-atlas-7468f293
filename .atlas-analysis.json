@@ -1,0 +1,159 @@
+{
+  "projectType": "saas",
+  "projectName": "Med Agenda",
+  "projectDescription": "A comprehensive medical appointment management system for clinics, featuring patient records, doctor scheduling, and consultation management.",
+  "theme": "almond",
+  "primaryColor": "#2563eb",
+  "lightColor": "#60a5fa",
+  "darkColor": "#1e40af",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "introduction",
+              "features",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/patient-guide",
+              "guides/doctor-guide",
+              "guides/admin-guide"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/appointments",
+              "features/patient-management",
+              "features/diagnosis",
+              "features/notifications"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/installation",
+              "deployment/docker",
+              "deployment/database",
+              "deployment/environment-variables"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/architecture",
+              "development/design-patterns",
+              "development/frontend",
+              "development/backend",
+              "development/contributing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Patients",
+            "pages": [
+              "api/patients/create",
+              "api/patients/login",
+              "api/patients/get",
+              "api/patients/list",
+              "api/patients/update",
+              "api/patients/delete"
+            ]
+          },
+          {
+            "group": "Doctors",
+            "pages": [
+              "api/doctors/create",
+              "api/doctors/login",
+              "api/doctors/get",
+              "api/doctors/list",
+              "api/doctors/update",
+              "api/doctors/delete",
+              "api/doctors/consultations"
+            ]
+          },
+          {
+            "group": "Consultations",
+            "pages": [
+              "api/consultations/create",
+              "api/consultations/get",
+              "api/consultations/list",
+              "api/consultations/update",
+              "api/consultations/delete",
+              "api/consultations/history"
+            ]
+          },
+          {
+            "group": "Diagnosis",
+            "pages": [
+              "api/diagnosis/create"
+            ]
+          },
+          {
+            "group": "Admin",
+            "pages": [
+              "api/admin/create",
+              "api/admin/login",
+              "api/admin/get",
+              "api/admin/delete"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Patient registration and authentication",
+    "Doctor profile management with specialties",
+    "Appointment scheduling with conflict detection",
+    "Medical diagnosis and patient history tracking",
+    "Email notifications for appointments",
+    "Admin dashboard for clinic management",
+    "Search and filter doctors by specialty",
+    "Urgent consultation flagging"
+  ],
+  "publicApiSurface": [
+    "POST /patients/create",
+    "POST /patients/login",
+    "GET /patients/{cpf}",
+    "GET /patients/list",
+    "PUT /patients/update/{cpf}",
+    "DELETE /patients/delete/{cpf}",
+    "POST /doctor/create",
+    "POST /doctor/login",
+    "GET /doctor",
+    "GET /doctor/search",
+    "PUT /doctor/{crm}",
+    "DELETE /doctor/{crm}",
+    "GET /doctor/consultations/{crm}",
+    "POST /consultations/create",
+    "GET /consultations/{id}",
+    "GET /consultations/all",
+    "PUT /consultations/update",
+    "DELETE /consultations/{id}",
+    "GET /consultations/patient-history/{cpf}",
+    "POST /diagnosis",
+    "POST /admin/create",
+    "POST /admin/login",
+    "GET /admin/{id}",
+    "DELETE /admin/{id}"
+  ]
+}
