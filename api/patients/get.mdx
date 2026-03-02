@@ -1,0 +1,80 @@
+---
+title: 'Get Patient'
+api: 'GET /patients/{cpf}'
+---
+
+Retrieves a patient's information by their CPF.
+
+## Path Parameters
+
+<ParamField path="cpf" type="string" required>
+  The patient's CPF (11-digit Brazilian tax ID).
+</ParamField>
+
+## Response
+
+<ResponseField name="cpf" type="string">
+  The patient's CPF.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The patient's full name.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The patient's email address.
+</ResponseField>
+
+<ResponseField name="dateOfBirth" type="string">
+  The patient's date of birth in ISO 8601 format.
+</ResponseField>
+
+<ResponseField name="address" type="string">
+  The patient's address.
+</ResponseField>
+
+<ResponseField name="medicalHistory" type="string">
+  The patient's medical history.
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X GET http://localhost:8080/patients/12345678901
+```
+
+## Example Response
+
+```json 200 OK
+{
+  "cpf": "12345678901",
+  "name": "Maria Silva",
+  "email": "maria.silva@example.com",
+  "dateOfBirth": "1990-05-15",
+  "address": "Rua das Flores, 123, São Paulo, SP",
+  "medicalHistory": "No known allergies. Previous surgery in 2015."
+}
+```
+
+## Error Responses
+
+<ResponseExample>
+```json 404 Not Found
+{}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- Returns 404 if no patient exists with the provided CPF
+- The password field is never included in the response for security reasons
+- CPF should be provided without any formatting (no dots or dashes)

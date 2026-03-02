@@ -1,0 +1,127 @@
+---
+title: 'Create Diagnosis'
+api: 'POST /diagnosis'
+---
+
+Creates a new diagnosis record for a medical consultation.
+
+## Request Body
+
+<ParamField body="descricao" type="string" required>
+  Detailed description of the diagnosis
+</ParamField>
+
+<ParamField body="data" type="string" required>
+  Date of the diagnosis in ISO format (YYYY-MM-DD)
+  
+  Example: `"2024-03-15"`
+</ParamField>
+
+<ParamField body="consulta" type="object" required>
+  The consultation associated with this diagnosis
+  
+  <ParamField body="consultationId" type="string" required>
+    UUID of the consultation
+  </ParamField>
+</ParamField>
+
+<ParamField body="cid" type="string" required>
+  International Classification of Diseases (CID) code
+  
+  Example: `"A00.0"`
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string">
+  Auto-generated UUID for the diagnosis
+</ResponseField>
+
+<ResponseField name="descricao" type="string">
+  Description of the diagnosis
+</ResponseField>
+
+<ResponseField name="data" type="string">
+  Date of the diagnosis in ISO format
+</ResponseField>
+
+<ResponseField name="consulta" type="object">
+  The associated consultation object with full details
+</ResponseField>
+
+<ResponseField name="cid" type="string">
+  CID code assigned to the diagnosis
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST http://localhost:8080/diagnosis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "descricao": "Patient presents symptoms of acute bronchitis with persistent cough",
+    "data": "2024-03-15",
+    "consulta": {
+      "consultationId": "123e4567-e89b-12d3-a456-426614174000"
+    },
+    "cid": "J20.9"
+  }'
+```
+
+```java Java
+Diagnosis diagnosis = new Diagnosis();
+diagnosis.setDescricao("Patient presents symptoms of acute bronchitis with persistent cough");
+diagnosis.setData(LocalDate.parse("2024-03-15"));
+
+Consultation consultation = new Consultation();
+consultation.setConsultationId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+diagnosis.setConsulta(consultation);
+
+diagnosis.setCid("J20.9");
+
+ResponseEntity<?> response = diagnosisController.createDiagnosis(diagnosis);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response (200)
+{
+  "id": "987fcdeb-51a2-43f7-9c8d-7e5f6a8b9c0d",
+  "descricao": "Patient presents symptoms of acute bronchitis with persistent cough",
+  "data": "2024-03-15",
+  "consulta": {
+    "consultationId": "123e4567-e89b-12d3-a456-426614174000",
+    "dateTime": "2024-03-15T10:30:00",
+    "duracaoMinutos": 60,
+    "isUrgent": false,
+    "observation": "Regular checkup"
+  },
+  "cid": "J20.9"
+}
+```
+
+```json Error Response (400)
+{
+  "error": "Consulta inválida."
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="400 Bad Request" type="string">
+  Returned when the consultation is invalid or doesn't exist
+  
+  **Response body**: `"Consulta inválida."`
+</ResponseField>
+
+## Notes
+
+- The `id` field is auto-generated and should not be included in the request
+- The consultation must exist in the database before creating a diagnosis
+- All fields marked as required must be provided in the request body
+- The `data` field should be in ISO date format (YYYY-MM-DD)
+- The `cid` field should follow the International Classification of Diseases standard

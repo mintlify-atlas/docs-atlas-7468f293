@@ -1,0 +1,403 @@
+---
+title: Features
+description: Comprehensive overview of Med Agenda's powerful features for medical appointment management
+---
+
+# Features Overview
+
+Med Agenda provides a complete suite of features designed to streamline medical practice management. From appointment scheduling to AI-powered medical assistance, every feature is built with healthcare professionals and patients in mind.
+
+## Core Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Appointment Management"
+    icon="calendar-check"
+    href="/features/appointments"
+  >
+    Schedule, update, and track consultations with automated email notifications and urgent appointment handling
+  </Card>
+  
+  <Card
+    title="Patient Management"
+    icon="user-doctor"
+    href="/features/patient-management"
+  >
+    Comprehensive patient profiles with medical history, consultation records, and secure authentication
+  </Card>
+  
+  <Card
+    title="Doctor Administration"
+    icon="stethoscope"
+    href="/guides/doctor-guide"
+  >
+    Manage medical staff with specialties, credentials (CRM), consultation pricing, and availability tracking
+  </Card>
+  
+  <Card
+    title="Diagnosis & Records"
+    icon="file-medical"
+    href="/features/diagnosis"
+  >
+    Document diagnoses with CID codes, maintain patient history, and track treatment outcomes
+  </Card>
+  
+  <Card
+    title="Payment Processing"
+    icon="credit-card"
+  >
+    Handle consultation payments with support for PIX, credit card, and payment status tracking
+  </Card>
+  
+  <Card
+    title="Email Notifications"
+    icon="envelope"
+    href="/features/notifications"
+  >
+    Automated appointment reminders and confirmations via Resend email service
+  </Card>
+  
+  <Card
+    title="AI Medical Assistant"
+    icon="robot"
+  >
+    Integrated chatbot powered by Ollama for medical information, CID lookups, and health guidance
+  </Card>
+  
+  <Card
+    title="Health News Integration"
+    icon="newspaper"
+  >
+    Curated medical news and updates from government health sources
+  </Card>
+</CardGroup>
+
+## Appointment Management
+
+The consultation system is the heart of Med Agenda, offering sophisticated appointment scheduling and tracking.
+
+### Key Capabilities
+
+- **Flexible Scheduling**: Create appointments with customizable date, time, and duration
+- **Urgent Consultations**: Flag and prioritize urgent medical appointments with the Decorator pattern
+- **Conflict Detection**: Automatic validation to prevent double-booking doctors
+- **Email Notifications**: Patients receive automatic confirmation emails upon booking
+- **Consultation History**: Complete timeline of patient visits with doctors
+- **Update & Cancellation**: Modify or cancel appointments with proper status tracking
+
+### Technical Implementation
+
+```java
+// Example: Consultation entity with urgent flag
+@Entity
+@Table(name = "consultation")
+public class Consultation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID consultationId;
+    
+    @Column(name = "date_time", nullable = false)
+    private LocalDateTime dateTime;
+    
+    @Column(name = "duracao_minutos", nullable = false)
+    private int duracaoMinutos = 60;
+    
+    @ManyToOne
+    @JoinColumn(name = "patient_id", referencedColumnName = "cpf")
+    private Patient patient;
+    
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", referencedColumnName = "crm")
+    private Doctor doctor;
+    
+    @Column(name = "is_urgent", nullable = false)
+    private boolean isUrgent;
+    
+    @Column(name = "observation")
+    private String observation;
+}
+```
+
+<Info>
+  Urgent consultations are handled using the **Decorator Pattern**, allowing special handling without modifying core consultation logic.
+</Info>
+
+## Patient Management
+
+Comprehensive patient data management with security and privacy in mind.
+
+### Patient Features
+
+- **Secure Registration**: CPF-based unique identification with password protection
+- **Profile Management**: Complete patient information including demographics and contact details
+- **Medical History**: Persistent medical history accessible across consultations
+- **Consultation History**: View all past and upcoming appointments
+- **Authentication**: Secure login system with CPF and password
+
+### Patient Data Model
+
+```java
+@Entity
+@Table(name = "patienty")
+public class Patient {
+    @Id
+    @Column(name = "cpf", length = 11, nullable = false, unique = true)
+    private String cpf;  // Brazilian ID number
+    
+    @Column(nullable = false, unique = true)
+    private String email;
+    
+    @Column(nullable = false)
+    private String password;
+    
+    @Column(name = "name", nullable = false)
+    private String name;
+    
+    @Column(name = "date_of_birth", nullable = false)
+    private LocalDate dateOfBirth;
+    
+    @Column(name = "address", length = 255)
+    private String address;
+    
+    @Column(name = "medical_history")
+    private String medicalHistory;
+    
+    @OneToMany(mappedBy = "patient")
+    private List<Consultation> historicoConsultas;
+}
+```
+
+<Note>
+  Patient objects are created using the **Factory Pattern**, ensuring consistent validation and initialization.
+</Note>
+
+## Doctor Management
+
+Manage your medical staff with comprehensive doctor profiles and credentials.
+
+### Doctor Features
+
+- **CRM Identification**: Brazilian medical license number as unique identifier
+- **Specialty Tracking**: Categorize doctors by medical specialty
+- **Consultation Pricing**: Individual pricing per doctor and specialty
+- **Search Functionality**: Find doctors by CRM, name, specialty, or email
+- **Availability Tracking**: View scheduled consultation dates
+- **Secure Authentication**: CRM-based login system
+
+### Doctor Data Structure
+
+```java
+@Entity
+@Table(name = "doctor")
+public class Doctor {
+    @Id
+    @Column(name = "crm", length = 9, nullable = false, unique = true)
+    private String crm;  // Medical license number
+    
+    @Column(nullable = false, unique = true)
+    private String email;
+    
+    @Column(name = "name", nullable = false)
+    private String name;
+    
+    @Column(name = "specialty", nullable = false)
+    private String specialty;
+    
+    @Column(name = "telephone", nullable = false)
+    private String telephone;
+    
+    @Column(name = "consultation_value", nullable = false)
+    private BigDecimal consultationValue;
+}
+```
+
+## Diagnosis & Medical Records
+
+Document and track patient diagnoses with international medical codes.
+
+### Diagnosis Features
+
+- **CID Integration**: Link diagnoses to International Classification of Diseases codes
+- **Consultation Linkage**: Each diagnosis tied to a specific consultation
+- **Date Tracking**: Temporal record of when diagnoses were made
+- **Detailed Descriptions**: Free-text diagnosis descriptions for context
+- **Medical History**: Automatic integration with patient consultation history
+
+### Diagnosis Model
+
+```java
+@Entity
+@Table(name = "diagnosis")
+public class Diagnosis {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    
+    @Column(nullable = false)
+    private String descricao;  // Diagnosis description
+    
+    @Column(nullable = false)
+    private LocalDate data;    // Diagnosis date
+    
+    @ManyToOne
+    @JoinColumn(name = "consulta_id", nullable = false)
+    private Consultation consulta;
+    
+    @JoinColumn(name = "cid_id", nullable = false)
+    private String cid;  // ICD code
+}
+```
+
+## Payment System
+
+Streamlined payment processing for medical consultations.
+
+### Payment Features
+
+- **Multiple Payment Methods**: Support for PIX, credit card, and other methods
+- **Payment Status Tracking**: PENDING, PAID, and FAILED states
+- **Transaction References**: Store external payment gateway references
+- **Consultation Linking**: One-to-one relationship with consultations
+- **Timestamp Tracking**: Automatic creation and update timestamps
+
+### Payment Workflow
+
+```java
+@Entity
+@Table(name = "payment")
+public class Payment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID paymentId;
+    
+    @OneToOne
+    @JoinColumn(name = "consultation_id", nullable = false)
+    private Consultation consultation;
+    
+    @Column(nullable = false)
+    private BigDecimal amount;
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status;  // PENDING, PAID, FAILED
+    
+    @Column
+    private String method;  // PIX, CARD, etc.
+    
+    @Column
+    private String transactionReference;
+    
+    @CreationTimestamp
+    private Instant createdAt;
+    
+    @UpdateTimestamp
+    private Instant updatedAt;
+}
+```
+
+## AI Medical Assistant
+
+Integrated AI chatbot powered by Ollama for intelligent medical information assistance.
+
+### AI Capabilities
+
+- **Context-Aware Responses**: Automatic context injection based on question type
+- **Medical Database Integration**: Access to CID codes, medical news, and health guidelines
+- **Streaming Responses**: Real-time response streaming for better UX
+- **Smart Keyword Detection**: Automatically determines when to use medical context
+- **Multiple Data Sources**: Integrates news, disease classifications, and medical skills data
+
+### Supported Queries
+
+- CID code lookups and disease information
+- Medical specialty and skill definitions
+- Health news and government announcements
+- Medical surveillance guidelines
+- General health information
+
+<Note>
+  The AI assistant uses **context-aware prompting** to provide accurate medical information based on scraped data from official health sources.
+</Note>
+
+## Email Notifications
+
+Automated email communication using the Resend email service.
+
+### Notification Types
+
+- **Appointment Confirmation**: Sent immediately upon consultation creation
+- **Appointment Reminders**: Scheduled notifications before appointments
+- **Appointment Updates**: Notifications when consultations are modified
+- **Cancellation Notices**: Alerts when appointments are cancelled
+
+### Email Integration
+
+```java
+// Resend Java SDK integration
+ResendClient resend = new ResendClient(apiKey);
+
+SendEmailRequest emailRequest = SendEmailRequest.builder()
+    .from("noreply@medagenda.com")
+    .to(patient.getEmail())
+    .subject("Appointment Confirmation")
+    .html(emailTemplate)
+    .build();
+    
+resend.emails().send(emailRequest);
+```
+
+## Health News Integration
+
+Stay informed with curated medical news from official government sources.
+
+### News Features
+
+- **Automated Scraping**: Regular updates from Brazilian Ministry of Health
+- **Pagination Support**: Browse news with configurable page sizes
+- **Data Persistence**: Stored in database for offline access
+- **REST API Access**: Programmatic access to health news
+
+### API Example
+
+```bash
+GET /api/news?limit=10
+```
+
+Returns paginated health news articles with titles, content, and publication dates.
+
+## Administrative Features
+
+Powerful administration tools for system management.
+
+### Admin Capabilities
+
+- **User Management**: Create and manage admin accounts
+- **System Access**: Secure admin authentication
+- **Data Oversight**: Access to system-wide reports and statistics
+- **Configuration Management**: System settings and parameters
+
+<Card
+  title="Admin Guide"
+  icon="user-shield"
+  href="/guides/admin-guide"
+>
+  Learn how to manage Med Agenda as an administrator
+</Card>
+
+## Next Steps
+
+Ready to explore specific features in depth?
+
+<CardGroup cols={2}>
+  <Card title="Appointment Guide" icon="calendar" href="/features/appointments">
+    Deep dive into consultation management
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Integrate with the REST API
+  </Card>
+  <Card title="Patient Guide" icon="user" href="/guides/patient-guide">
+    Learn patient workflow
+  </Card>
+  <Card title="Doctor Guide" icon="stethoscope" href="/guides/doctor-guide">
+    Explore doctor features
+  </Card>
+</CardGroup>

@@ -1,0 +1,538 @@
+---
+title: Database Setup
+description: Configure PostgreSQL database for Med Agenda
+---
+
+## Overview
+
+Med Agenda uses **PostgreSQL** as its primary database. The application supports both self-hosted PostgreSQL instances and managed database services like [Neon.tech](https://neon.tech).
+
+## Database Requirements
+
+- **PostgreSQL Version**: 12 or higher (15+ recommended)
+- **Extensions**: None required (uses standard PostgreSQL features)
+- **Encoding**: UTF-8
+- **Timezone**: UTC recommended
+
+## Database Schema
+
+Med Agenda uses JPA/Hibernate for automatic schema management. The application manages the following main entities:
+
+### Core Tables
+
+<CardGroup cols={2}>
+  <Card title="Patients" icon="user">
+    Patient records with medical history and personal information
+  </Card>
+  <Card title="Doctors" icon="user-doctor">
+    Medical professionals with specialties and consultation rates
+  </Card>
+  <Card title="Consultations" icon="calendar">
+    Appointment scheduling and management
+  </Card>
+  <Card title="Diagnosis" icon="notes-medical">
+    Medical diagnoses linked to consultations with CID codes
+  </Card>
+</CardGroup>
+
+### Additional Tables
+
+- **Admin**: Administrative users
+- **Payment**: Payment transactions
+- **News**: System announcements
+- **CID**: International Classification of Diseases codes
+- **GuiaDefinicao**: Medical guidelines
+- **HabilidadeMedica**: Medical skills and specialties
+
+## Installation Methods
+
+<Tabs>
+  <Tab title="Neon.tech (Recommended)">
+    ### Using Neon.tech Managed PostgreSQL
+    
+    [Neon.tech](https://neon.tech) provides serverless PostgreSQL with automatic scaling and branching.
+    
+    <Steps>
+      <Step title="Create a Neon account">
+        Sign up at [neon.tech](https://neon.tech)
+      </Step>
+      
+      <Step title="Create a new project">
+        1. Click "New Project"
+        2. Choose a region close to your deployment
+        3. Select PostgreSQL version (15+ recommended)
+      </Step>
+      
+      <Step title="Get connection string">
+        Copy the connection string from your project dashboard:
+        ```
+        postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+        ```
+      </Step>
+      
+      <Step title="Configure Med Agenda">
+        Set the connection string in your environment:
+        ```bash
+        export SPRING_DATASOURCE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require"
+        ```
+      </Step>
+    </Steps>
+    
+    <Note>
+    Neon.tech includes SSL by default. Always use `sslmode=require` in the connection string.
+    </Note>
+  </Tab>
+  
+  <Tab title="Local PostgreSQL">
+    ### Installing PostgreSQL Locally
+    
+    <CodeGroup>
+    ```bash macOS (Homebrew)
+    # Install PostgreSQL
+    brew install postgresql@15
+    
+    # Start PostgreSQL service
+    brew services start postgresql@15
+    
+    # Create database
+    createdb medagenda
+    ```
+    
+    ```bash Ubuntu/Debian
+    # Install PostgreSQL
+    sudo apt update
+    sudo apt install postgresql postgresql-contrib
+    
+    # Start PostgreSQL service
+    sudo systemctl start postgresql
+    sudo systemctl enable postgresql
+    
+    # Create database and user
+    sudo -u postgres psql
+    CREATE DATABASE medagenda;
+    CREATE USER medagenda_user WITH PASSWORD 'your_password';
+    GRANT ALL PRIVILEGES ON DATABASE medagenda TO medagenda_user;
+    ```
+    
+    ```bash Windows (Chocolatey)
+    # Install PostgreSQL
+    choco install postgresql
+    
+    # Create database using pgAdmin or psql
+    psql -U postgres
+    CREATE DATABASE medagenda;
+    ```
+    
+    ```bash Docker
+    # Run PostgreSQL in Docker
+    docker run -d \
+      --name postgres-medagenda \
+      -e POSTGRES_DB=medagenda \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=postgres \
+      -p 5432:5432 \
+      -v postgres_data:/var/lib/postgresql/data \
+      postgres:15-alpine
+    ```
+    </CodeGroup>
+  </Tab>
+  
+  <Tab title="Cloud Providers">
+    ### Using Cloud PostgreSQL Services
+    
+    <AccordionGroup>
+      <Accordion title="AWS RDS">
+        1. Create RDS PostgreSQL instance
+        2. Configure security group to allow connections
+        3. Use endpoint as host in connection string:
+        ```
+        jdbc:postgresql://your-instance.region.rds.amazonaws.com:5432/medagenda
+        ```
+      </Accordion>
+      
+      <Accordion title="Google Cloud SQL">
+        1. Create Cloud SQL PostgreSQL instance
+        2. Configure authorized networks or use Cloud SQL Proxy
+        3. Use connection string:
+        ```
+        jdbc:postgresql://instance-ip:5432/medagenda
+        ```
+      </Accordion>
+      
+      <Accordion title="Azure Database for PostgreSQL">
+        1. Create Azure Database for PostgreSQL
+        2. Configure firewall rules
+        3. Use connection string with SSL:
+        ```
+        jdbc:postgresql://server.postgres.database.azure.com:5432/medagenda?sslmode=require
+        ```
+      </Accordion>
+      
+      <Accordion title="DigitalOcean Managed Database">
+        1. Create Managed PostgreSQL cluster
+        2. Download CA certificate if required
+        3. Use provided connection string
+      </Accordion>
+    </AccordionGroup>
+  </Tab>
+</Tabs>
+
+## Connection Configuration
+
+### Connection String Format
+
+The JDBC connection string follows this format:
+
+```
+jdbc:postgresql://[host]:[port]/[database]?[parameters]
+```
+
+### Common Connection Parameters
+
+<ParamField path="sslmode" type="string" default="disable">
+  SSL connection mode. Use `require` for production.
+  
+  Options: `disable`, `allow`, `prefer`, `require`, `verify-ca`, `verify-full`
+</ParamField>
+
+<ParamField path="currentSchema" type="string" default="public">
+  Default schema to use
+</ParamField>
+
+<ParamField path="connectTimeout" type="integer" default="10">
+  Connection timeout in seconds
+</ParamField>
+
+<ParamField path="socketTimeout" type="integer" default="0">
+  Socket timeout in seconds (0 = infinite)
+</ParamField>
+
+### Example Connection Strings
+
+<CodeGroup>
+```bash Local Development
+jdbc:postgresql://localhost:5432/medagenda?sslmode=disable
+```
+
+```bash Production (Neon.tech)
+jdbc:postgresql://user:pass@ep-xxx.region.aws.neon.tech/medagenda?sslmode=require
+```
+
+```bash Production (RDS)
+jdbc:postgresql://prod-db.region.rds.amazonaws.com:5432/medagenda?sslmode=require&connectTimeout=30
+```
+
+```bash Docker Compose
+jdbc:postgresql://db:5432/medagenda?sslmode=disable
+```
+</CodeGroup>
+
+## Schema Management
+
+Med Agenda uses **Hibernate** for automatic schema management.
+
+### DDL Auto Modes
+
+Configure schema behavior with `JPA_DDL_AUTO` environment variable:
+
+<Tabs>
+  <Tab title="update (Default)">
+    ```bash
+    export JPA_DDL_AUTO=update
+    ```
+    
+    - Automatically updates schema based on entities
+    - Adds new tables and columns
+    - **Does not** remove columns or tables
+    - **Recommended for development**
+    
+    <Warning>
+    Use with caution in production. May cause unintended schema changes.
+    </Warning>
+  </Tab>
+  
+  <Tab title="validate">
+    ```bash
+    export JPA_DDL_AUTO=validate
+    ```
+    
+    - Validates schema matches entities
+    - **Does not** modify database
+    - Throws exception if schema doesn't match
+    - **Recommended for production**
+  </Tab>
+  
+  <Tab title="create">
+    ```bash
+    export JPA_DDL_AUTO=create
+    ```
+    
+    - Drops and recreates schema on startup
+    - **Deletes all data**
+    - Only use for testing
+    
+    <Warning>
+    Never use in production! All data will be lost.
+    </Warning>
+  </Tab>
+  
+  <Tab title="none">
+    ```bash
+    export JPA_DDL_AUTO=none
+    ```
+    
+    - No automatic schema management
+    - Requires manual schema creation
+    - Use with migration tools
+  </Tab>
+</Tabs>
+
+## Connection Pool Configuration
+
+Med Agenda uses **HikariCP** for connection pooling.
+
+### Pool Settings
+
+```bash .env
+# Maximum number of connections in pool
+DB_POOL_MAX=10
+
+# Minimum idle connections
+DB_POOL_MIN_IDLE=5
+
+# Connection timeout (ms)
+DB_POOL_CONNECTION_TIMEOUT=30000
+
+# Max lifetime of connection (ms)
+DB_POOL_MAX_LIFETIME=1800000
+```
+
+### Recommended Pool Sizes
+
+| Environment | Max Pool Size | Notes |
+|-------------|---------------|-------|
+| Development | 5-10 | Sufficient for local testing |
+| Staging | 10-20 | Moderate concurrent users |
+| Production | 20-50 | Based on expected load |
+| High Traffic | 50-100 | Monitor and adjust |
+
+<Note>
+Start with smaller pool sizes and increase based on monitoring. Too many connections can overload the database.
+</Note>
+
+## Database Initialization
+
+### First Time Setup
+
+When running Med Agenda for the first time:
+
+<Steps>
+  <Step title="Create empty database">
+    ```sql
+    CREATE DATABASE medagenda;
+    ```
+  </Step>
+  
+  <Step title="Configure connection">
+    Set environment variables with database credentials
+  </Step>
+  
+  <Step title="Start application">
+    The application will automatically create tables on first run (if `JPA_DDL_AUTO=update`)
+  </Step>
+  
+  <Step title="Verify schema">
+    ```sql
+    \dt -- List all tables
+    ```
+    
+    You should see tables for: admin, patient, doctor, consultation, diagnosis, etc.
+  </Step>
+</Steps>
+
+### Seed Data (Optional)
+
+To add initial data, connect to your database and run:
+
+```sql
+-- Create admin user (password should be hashed by application)
+INSERT INTO admin (user_id, name, email, password, creation_timestamp, updated_timestamp)
+VALUES (
+  gen_random_uuid(),
+  'System Admin',
+  'admin@medagenda.com',
+  '$2a$10$...', -- Use BCrypt hashed password
+  NOW(),
+  NOW()
+);
+```
+
+<Warning>
+Never store plain-text passwords. Use the application's authentication endpoints to create users.
+</Warning>
+
+## Backup and Recovery
+
+### Backup Database
+
+<CodeGroup>
+```bash Local PostgreSQL
+# Full database backup
+pg_dump -U postgres medagenda > backup.sql
+
+# Compressed backup
+pg_dump -U postgres medagenda | gzip > backup.sql.gz
+
+# Backup to custom format (recommended)
+pg_dump -U postgres -Fc medagenda > backup.dump
+```
+
+```bash Docker PostgreSQL
+# Backup from Docker container
+docker exec postgres-medagenda pg_dump -U postgres medagenda > backup.sql
+```
+
+```bash Neon.tech
+# Use Neon branching feature for point-in-time backups
+# Or export via pg_dump with connection string
+pg_dump "postgresql://user:pass@ep-xxx.neon.tech/medagenda" > backup.sql
+```
+</CodeGroup>
+
+### Restore Database
+
+<CodeGroup>
+```bash From SQL file
+# Drop and recreate database
+dropdb medagenda
+createdb medagenda
+
+# Restore from backup
+psql -U postgres medagenda < backup.sql
+```
+
+```bash From custom format
+pg_restore -U postgres -d medagenda backup.dump
+```
+</CodeGroup>
+
+### Automated Backups
+
+Set up automated backups with cron:
+
+```bash
+# Add to crontab (daily backup at 2 AM)
+0 2 * * * pg_dump -U postgres medagenda | gzip > /backups/medagenda-$(date +\%Y\%m\%d).sql.gz
+
+# Keep only last 7 days
+0 3 * * * find /backups -name "medagenda-*.sql.gz" -mtime +7 -delete
+```
+
+## Monitoring and Maintenance
+
+### Check Database Size
+
+```sql
+SELECT 
+  pg_size_pretty(pg_database_size('medagenda')) as database_size;
+```
+
+### Table Sizes
+
+```sql
+SELECT 
+  schemaname,
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+### Active Connections
+
+```sql
+SELECT 
+  count(*) as connection_count,
+  state
+FROM pg_stat_activity
+WHERE datname = 'medagenda'
+GROUP BY state;
+```
+
+### Vacuum and Analyze
+
+Regularly maintain database performance:
+
+```sql
+-- Analyze tables for query optimization
+ANALYZE;
+
+-- Vacuum to reclaim storage
+VACUUM ANALYZE;
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Connection refused">
+    Check if PostgreSQL is running:
+    ```bash
+    # Local
+    pg_isready -h localhost -p 5432
+    
+    # Docker
+    docker ps | grep postgres
+    ```
+    
+    Verify firewall allows connections on port 5432.
+  </Accordion>
+  
+  <Accordion title="Authentication failed">
+    Verify credentials are correct:
+    ```bash
+    psql -h localhost -U your_user -d medagenda
+    ```
+    
+    Check `pg_hba.conf` authentication settings.
+  </Accordion>
+  
+  <Accordion title="Schema validation errors">
+    If using `JPA_DDL_AUTO=validate` and getting errors:
+    ```bash
+    # Temporarily switch to update to fix schema
+    export JPA_DDL_AUTO=update
+    
+    # Or manually update schema to match entities
+    ```
+  </Accordion>
+  
+  <Accordion title="Too many connections">
+    Reduce connection pool size:
+    ```bash
+    export DB_POOL_MAX=10
+    ```
+    
+    Or increase PostgreSQL max_connections in `postgresql.conf`.
+  </Accordion>
+  
+  <Accordion title="Slow queries">
+    Enable query logging:
+    ```bash
+    export JPA_SHOW_SQL=true
+    ```
+    
+    Check and optimize slow queries. Add indexes where needed.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Environment Variables" icon="gear" href="/deployment/environment-variables">
+    Configure database connection strings
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Explore the Med Agenda API
+  </Card>
+</CardGroup>

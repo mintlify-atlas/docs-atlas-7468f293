@@ -1,0 +1,53 @@
+---
+title: 'Get Doctor Consultations'
+api: 'GET /doctor/consultations/{crm}'
+---
+
+Retrieve all consultation dates/times scheduled for a specific doctor.
+
+## Path Parameters
+
+<ParamField path="crm" type="string" required>
+  The CRM number of the doctor whose consultations you want to retrieve.
+</ParamField>
+
+## Response
+
+Returns an array of consultation date/time values.
+
+<ResponseField name="[]" type="array">
+  Array of ISO 8601 formatted date-time strings representing scheduled consultation times.
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X GET http://localhost:8080/doctor/consultations/123456789
+```
+
+## Example Response
+
+```json
+[
+  "2026-03-10T09:00:00",
+  "2026-03-10T10:30:00",
+  "2026-03-11T14:00:00",
+  "2026-03-12T15:30:00"
+]
+```
+
+## Example Response (No Consultations)
+
+```json
+[]
+```
+
+## Error Responses
+
+<ResponseField name="200 OK (Empty Array)" type="success">
+  Doctor exists but has no scheduled consultations. Returns an empty array `[]`.
+</ResponseField>
+
+<ResponseField name="404 Not Found" type="error">
+  Doctor with the specified CRM number not found (implementation dependent).
+</ResponseField>

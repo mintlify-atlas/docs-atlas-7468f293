@@ -1,0 +1,108 @@
+---
+title: 'Delete Admin'
+api: 'DELETE /admin/{id}'
+---
+
+Deletes an administrator account from the system.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the administrator to delete
+  
+  Example: `"123e4567-e89b-12d3-a456-426614174000"`
+</ParamField>
+
+## Response
+
+Returns a plain text confirmation message.
+
+<ResponseField name="Success" type="string">
+  `"Admin deletado com sucesso."` (Admin deleted successfully)
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE http://localhost:8080/admin/123e4567-e89b-12d3-a456-426614174000
+```
+
+```java Java
+UUID adminId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+ResponseEntity<String> response = adminController.deleteAdmin(adminId);
+```
+
+```javascript JavaScript/Fetch
+const adminId = '123e4567-e89b-12d3-a456-426614174000';
+
+fetch(`http://localhost:8080/admin/${adminId}`, {
+  method: 'DELETE'
+})
+.then(response => response.text())
+.then(data => console.log(data));
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```text Success Response (200)
+Admin deletado com sucesso.
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="400 Bad Request" type="error">
+  Returned when the ID format is invalid (not a valid UUID)
+</ResponseField>
+
+<ResponseField name="404 Not Found" type="error">
+  May be returned by the service layer if the admin doesn't exist (implementation dependent)
+</ResponseField>
+
+## Security Considerations
+
+<Warning>
+  **Critical Security Notes**:
+  - **Authentication Required**: This endpoint MUST require authentication to prevent unauthorized deletions
+  - **Authorization**: Implement strict authorization checks:
+    - Prevent self-deletion (admins should not be able to delete their own account)
+    - Require super-admin privileges for deleting other admins
+    - Consider implementing a confirmation workflow for critical operations
+  - **Audit Logging**: Log all deletion attempts with admin ID, timestamp, and requesting user
+  - **Soft Delete**: Consider implementing soft delete instead of hard delete to maintain audit trail
+  - **Cascade Effects**: Ensure proper handling of related records before deletion
+  - **Rate Limiting**: Implement rate limiting to prevent abuse
+  - **Confirmation**: Require additional confirmation (e.g., password re-entry) for this destructive operation
+</Warning>
+
+## Important Notes
+
+<Note>
+  **Operational Considerations**:
+  - This operation is **irreversible** (unless soft delete is implemented)
+  - Ensure you have a backup before deleting admin accounts
+  - Consider the impact on:
+    - Audit logs that reference this admin
+    - Any records created or modified by this admin
+    - System access and permissions
+  - Maintain at least one active admin account at all times
+</Note>
+
+## Best Practices
+
+1. **Disable Before Delete**: Instead of immediate deletion, first disable the account and delete after a grace period
+2. **Require Confirmation**: Implement a two-step deletion process with explicit confirmation
+3. **Notify Stakeholders**: Send notifications to other admins when an admin account is deleted
+4. **Backup Data**: Ensure admin data is backed up before deletion
+5. **Prevent Last Admin Deletion**: Implement checks to prevent deletion of the last admin account
+
+## Alternative: Account Deactivation
+
+Consider implementing an account deactivation endpoint instead of deletion:
+- Preserves audit history
+- Allows account reactivation if needed
+- Maintains data integrity
+- Safer for production systems

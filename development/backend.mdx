@@ -1,0 +1,666 @@
+---
+title: Backend Development
+description: Guide to developing the Med Agenda Spring Boot backend API
+---
+
+# Backend Development
+
+The Med Agenda backend is a RESTful API built with Spring Boot 3.3.4 and Java 21, implementing a three-tier architecture with design patterns and best practices.
+
+## Spring Boot Application Structure
+
+### Project Information
+
+- **Group ID**: `com.ufu`
+- **Artifact ID**: `gestaoConsultasMedicas`
+- **Version**: `0.0.1-SNAPSHOT`
+- **Java Version**: 21
+- **Spring Boot Version**: 3.3.4
+- **Build Tool**: Maven
+
+### Maven Dependencies
+
+**Core Spring Boot**:
+- `spring-boot-starter-data-jpa` - JPA and Hibernate
+- `spring-boot-starter-web` - REST API and MVC
+- `spring-boot-starter-security` - Security and authentication
+- `spring-boot-devtools` - Development tools with hot reload
+
+**Database**:
+- `postgresql` - PostgreSQL JDBC driver
+- `h2` - In-memory database for testing
+
+**Utilities**:
+- `lombok` - Reduce boilerplate code
+- `resend-java` (1.0.0) - Email service
+- `pdfbox` (2.0.30) - PDF processing
+- `jsoup` (1.17.2) - HTML parsing and web scraping
+- `feign-core` (11.7) - HTTP client
+
+**Testing**:
+- `spring-boot-starter-test` - Testing framework
+- `junit-jupiter` - JUnit 5 testing
+
+## Package Organization
+
+The backend follows a clean, layered architecture:
+
+```
+com.ufu.gestaoConsultasMedicas/
+├── config/                    # Configuration classes
+│   └── SecurityConfig.java   # Spring Security setup
+├── controller/               # REST API controllers
+│   ├── AdminController.java
+│   ├── ConsultationController.java
+│   ├── DiagnosisController.java
+│   ├── DoctorController.java
+│   ├── PatientController.java
+│   ├── PaymentController.java
+│   ├── CidController.java
+│   ├── NewsController.java
+│   ├── GuiaVigilanciaController.java
+│   ├── ScrapingController.java
+│   ├── OllamaChatController.java
+│   └── HelloWorldController.java
+├── decorator/                # Decorator pattern
+│   ├── ConsultationService.java
+│   ├── ConsultationServiceImpl.java
+│   └── UrgentConsultationDecorator.java
+├── dto/                     # Data Transfer Objects
+│   ├── ChatRequest.java
+│   ├── ChatWithContextRequest.java
+│   └── NewsDTO.java
+├── facade/                  # Facade pattern
+│   └── ConsultationFacade.java
+├── factory/                 # Factory pattern
+│   └── PatientFactory.java
+├── history/                 # History/Memento pattern
+│   ├── ConsultationHistoryCreation.java
+│   ├── ConsultationHistoryQuery.java
+│   └── ConsultationHistoryService.java
+├── models/                  # JPA entities
+│   ├── Admin.java
+│   ├── Cid.java
+│   ├── Consultation.java
+│   ├── Diagnosis.java
+│   ├── Doctor.java
+│   ├── GuiaDefinicao.java
+│   ├── HabilidadeMedica.java
+│   ├── News.java
+│   ├── Patient.java
+│   ├── Payment.java
+│   └── PaymentStatus.java
+├── repository/              # Data repositories
+│   ├── AdminRepository.java
+│   ├── CidRepository.java
+│   ├── ConsultationRepository.java
+│   ├── DiagnosisRepository.java
+│   ├── DoctorRepository.java
+│   ├── GuiaDefinicaoRepository.java
+│   ├── HabilidadeMedicaRepository.java
+│   ├── NewsRepository.java
+│   ├── PatientRepository.java
+│   └── PaymentRepository.java
+├── service/                 # Business logic services
+│   ├── AdminService.java
+│   ├── CidService.java
+│   ├── ConsultationService.java
+│   ├── DiagnosisService.java
+│   ├── DoctorService.java
+│   ├── EmailService.java
+│   ├── GuiaVigilanciaService.java
+│   ├── NewsService.java
+│   ├── PatientService.java
+│   ├── PaymentService.java
+│   ├── ScrapingContextService.java
+│   └── ScrapingService.java
+├── strategy/                # Strategy pattern
+│   ├── DoctorSearchStrategy.java
+│   ├── SearchDoctorByCrm.java
+│   ├── SearchDoctorByEmail.java
+│   ├── SearchDoctorByName.java
+│   └── SearchDoctorBySpecialty.java
+└── validation/              # Validation logic
+    └── PatientValidator.java
+```
+
+## JPA/Hibernate Entities
+
+### Entity Relationships
+
+Med Agenda uses JPA annotations to define entity relationships:
+
+#### Patient Entity
+
+**`models/Patient.java`**:
+```java
+@Entity
+@Table(name = "patienty")
+public class Patient {
+    
+    @Id
+    @Column(name = "cpf", length = 11, nullable = false, unique = true)
+    private String cpf;
+    
+    @Column(nullable = false, unique = true)
+    private String email;
+    
+    @Column(nullable = false)
+    private String password;
+    
+    @Column(name = "name", nullable = false)
+    private String name;
+    
+    @Column(name = "date_of_birth", nullable = false)
+    private LocalDate dateOfBirth;
+    
+    @Column(name = "address", length = 255)
+    private String address;
+    
+    @Column(name = "medical_history")
+    private String medicalHistory;
+    
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Consultation> historicoConsultas;
+    
+    // Constructors, getters, setters...
+}
+```
+
+**Key Features**:
+- CPF as primary key (Brazilian national ID)
+- One-to-Many relationship with Consultation
+- Lazy loading for performance
+- Cascade operations for data integrity
+
+#### Consultation Entity
+
+**`models/Consultation.java`**:
+```java
+@Entity
+@Table(name = "consultation")
+public class Consultation {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID consultationId;
+    
+    @Column(name = "date_time", nullable = false)
+    private LocalDateTime dateTime;
+    
+    @Column(name = "duracao_minutos", nullable = false)
+    private int duracaoMinutos = 60;
+    
+    @ManyToOne
+    @JoinColumn(name = "patient_id", referencedColumnName = "cpf", nullable = false)
+    private Patient patient;
+    
+    @ManyToOne
+    @JoinColumn(name = "doctor_id", referencedColumnName = "crm", nullable = false)
+    private Doctor doctor;
+    
+    @Column(name = "is_urgent", nullable = false)
+    private boolean isUrgent;
+    
+    @Column(name = "observation")
+    private String observation;
+    
+    // Constructors, getters, setters...
+}
+```
+
+**Key Features**:
+- UUID primary key for distributed systems
+- Many-to-One relationships with Patient and Doctor
+- Custom join columns (cpf, crm)
+- Boolean flag for urgent consultations
+
+### Entity Best Practices
+
+1. **Use appropriate fetch types**:
+   - `LAZY` for collections and large objects
+   - `EAGER` only when necessary
+
+2. **Cascade operations carefully**:
+   - `CascadeType.ALL` for owned entities
+   - Avoid cascading deletes for shared entities
+
+3. **Use `@JsonIgnore`** to prevent infinite recursion in bidirectional relationships
+
+4. **Define proper indexes** on foreign keys and frequently queried columns
+
+## REST API Design
+
+### Controller Structure
+
+Controllers handle HTTP requests and delegate to services:
+
+**`controller/PatientController.java`**:
+```java
+@RestController
+@RequestMapping("/patients")
+@CrossOrigin(origins = "*")
+public class PatientController {
+    
+    @Autowired
+    private PatientService patientService;
+    
+    @PostMapping("/create")
+    public ResponseEntity<Patient> createPatient(@RequestBody PatientDTO dto) {
+        Patient patient = patientService.createPatient(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(patient);
+    }
+    
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginDTO dto) {
+        Patient patient = patientService.login(dto.getCpf(), dto.getPassword());
+        if (patient != null) {
+            return ResponseEntity.ok(patient);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+    }
+    
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Patient> getPatient(@PathVariable String cpf) {
+        Patient patient = patientService.findByCpf(cpf);
+        return ResponseEntity.ok(patient);
+    }
+    
+    @GetMapping("/list")
+    public ResponseEntity<List<Patient>> listPatients() {
+        List<Patient> patients = patientService.findAll();
+        return ResponseEntity.ok(patients);
+    }
+    
+    @PutMapping("/update/{cpf}")
+    public ResponseEntity<Patient> updatePatient(
+        @PathVariable String cpf, 
+        @RequestBody PatientDTO dto
+    ) {
+        Patient updated = patientService.updatePatient(cpf, dto);
+        return ResponseEntity.ok(updated);
+    }
+    
+    @DeleteMapping("/delete/{cpf}")
+    public ResponseEntity<Void> deletePatient(@PathVariable String cpf) {
+        patientService.deletePatient(cpf);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+### API Endpoints
+
+See the full API documentation in the README. Key endpoints include:
+
+**Admin**:
+- `POST /admin/login` - Admin authentication
+- `POST /admin/create` - Create admin
+- `GET /admin/{id}` - Get admin details
+- `DELETE /admin/{id}` - Delete admin
+
+**Patient**:
+- `POST /patients/create` - Register patient
+- `POST /patients/login` - Patient authentication
+- `GET /patients/{cpf}` - Get patient by CPF
+- `GET /patients/list` - List all patients
+- `PUT /patients/update/{cpf}` - Update patient
+- `DELETE /patients/delete/{cpf}` - Delete patient
+
+**Doctor**:
+- `POST /doctor/create` - Register doctor
+- `POST /doctor/login` - Doctor authentication
+- `PUT /doctor/{crm}` - Update doctor
+- `DELETE /doctor/{crm}` - Delete doctor
+- `GET /doctor` - List all doctors
+- `GET /doctor/search?crm={crm}` - Search by CRM
+- `GET /doctor/search?name={name}` - Search by name
+- `GET /doctor/search?specialty={specialty}` - Search by specialty
+- `GET /doctor/search?email={email}` - Search by email
+- `GET /doctor/consultations/{crm}` - Doctor's consultation schedule
+
+**Consultation**:
+- `POST /consultations/create` - Schedule consultation
+- `PUT /consultations/update` - Update consultation
+- `GET /consultations/{id}` - Get consultation details
+- `GET /consultations/all` - List all consultations
+- `DELETE /consultations/{id}` - Cancel consultation
+- `GET /consultations/patient-history/{cpf}` - Patient's consultation history
+
+**Diagnosis**:
+- `POST /diagnosis` - Create diagnosis
+
+### Service Layer Pattern
+
+**`service/PatientService.java`**:
+```java
+@Service
+public class PatientService {
+    
+    @Autowired
+    private PatientRepository patientRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    public Patient createPatient(PatientDTO dto) {
+        // Use factory pattern
+        Patient patient = PatientFactory.createPatient(
+            dto.getCpf(),
+            dto.getName(),
+            dto.getDateOfBirth(),
+            dto.getAddress(),
+            dto.getMedicalHistory(),
+            dto.getEmail(),
+            passwordEncoder.encode(dto.getPassword())
+        );
+        
+        return patientRepository.save(patient);
+    }
+    
+    public Patient login(String cpf, String password) {
+        Patient patient = patientRepository.findById(cpf)
+            .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+        
+        if (passwordEncoder.matches(password, patient.getPassword())) {
+            return patient;
+        }
+        throw new UnauthorizedException("Invalid credentials");
+    }
+    
+    public Patient findByCpf(String cpf) {
+        return patientRepository.findById(cpf)
+            .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+    }
+    
+    public List<Patient> findAll() {
+        return patientRepository.findAll();
+    }
+    
+    public Patient updatePatient(String cpf, PatientDTO dto) {
+        Patient patient = findByCpf(cpf);
+        
+        // Update fields
+        if (dto.getName() != null) patient.setName(dto.getName());
+        if (dto.getEmail() != null) patient.setEmail(dto.getEmail());
+        if (dto.getAddress() != null) patient.setAddress(dto.getAddress());
+        // ... update other fields
+        
+        return patientRepository.save(patient);
+    }
+    
+    public void deletePatient(String cpf) {
+        Patient patient = findByCpf(cpf);
+        patientRepository.delete(patient);
+    }
+}
+```
+
+### Repository Layer
+
+**`repository/PatientRepository.java`**:
+```java
+@Repository
+public interface PatientRepository extends JpaRepository<Patient, String> {
+    
+    Optional<Patient> findByEmail(String email);
+    
+    List<Patient> findByNameContainingIgnoreCase(String name);
+    
+    @Query("SELECT p FROM Patient p WHERE p.dateOfBirth BETWEEN :startDate AND :endDate")
+    List<Patient> findByDateOfBirthBetween(
+        @Param("startDate") LocalDate startDate, 
+        @Param("endDate") LocalDate endDate
+    );
+}
+```
+
+**ConsultationRepository**:
+```java
+@Repository
+public interface ConsultationRepository extends JpaRepository<Consultation, UUID> {
+    
+    List<Consultation> findByPatient_Cpf(String cpf);
+    
+    List<Consultation> findByDoctor_Crm(String crm);
+    
+    List<Consultation> findByDateTimeBetween(LocalDateTime start, LocalDateTime end);
+    
+    @Query("SELECT c FROM Consultation c WHERE c.isUrgent = true")
+    List<Consultation> findUrgentConsultations();
+}
+```
+
+## Security Configuration
+
+**`config/SecurityConfig.java`**:
+```java
+@Configuration
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf().disable()  // Disable CSRF for REST API
+            .authorizeHttpRequests()
+            .anyRequest().permitAll()  // Allow all requests (development)
+            .and()
+            .headers().frameOptions().disable()  // Disable frame options
+            .and()
+            .httpBasic().disable();  // Disable basic auth
+        return http.build();
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();  // BCrypt for password hashing
+    }
+}
+```
+
+<Warning>
+The current security configuration permits all requests. For production, implement JWT-based authentication and role-based access control.
+</Warning>
+
+### Production Security Recommendations
+
+1. **JWT Authentication**:
+   - Add `spring-boot-starter-oauth2-resource-server`
+   - Implement JWT token generation and validation
+   - Secure endpoints with `@PreAuthorize` annotations
+
+2. **Role-Based Access Control**:
+   ```java
+   .authorizeHttpRequests()
+       .requestMatchers("/admin/**").hasRole("ADMIN")
+       .requestMatchers("/doctor/**").hasRole("DOCTOR")
+       .requestMatchers("/patient/**").hasRole("PATIENT")
+       .anyRequest().authenticated()
+   ```
+
+3. **CORS Configuration**:
+   ```java
+   @Bean
+   public CorsConfigurationSource corsConfigurationSource() {
+       CorsConfiguration configuration = new CorsConfiguration();
+       configuration.setAllowedOrigins(Arrays.asList("https://yourdomain.com"));
+       configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+       // ... configure other CORS settings
+       return source;
+   }
+   ```
+
+## Build with Maven
+
+### Build Commands
+
+```bash
+# Clean and compile
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Package application
+mvn package
+
+# Skip tests during build
+mvn package -DskipTests
+
+# Run application
+mvn spring-boot:run
+
+# Run on specific port
+mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8081
+```
+
+### Maven POM Configuration
+
+**`pom.xml`** (key sections):
+```xml
+<properties>
+    <java.version>21</java.version>
+</properties>
+
+<dependencies>
+    <!-- Spring Boot Starters -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    
+    <!-- Database -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    
+    <!-- Utilities -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <excludes>
+                    <exclude>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                    </exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+## Application Configuration
+
+**`application.properties`** (example):
+```properties
+# Server
+server.port=8080
+
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/medagenda
+spring.datasource.username=postgres
+spring.datasource.password=yourpassword
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# Email (Resend)
+resend.api.key=your_resend_api_key
+
+# Logging
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+```
+
+## Testing
+
+### Repository Tests
+
+```java
+@DataJpaTest
+class PatientRepositoryTest {
+    
+    @Autowired
+    private PatientRepository patientRepository;
+    
+    @Test
+    void testSavePatient() {
+        Patient patient = new Patient(
+            "12345678901", "test@email.com", "hashedpw",
+            "John Doe", LocalDate.of(1990, 1, 1), 
+            "123 Main St", "No history"
+        );
+        
+        Patient saved = patientRepository.save(patient);
+        
+        assertNotNull(saved);
+        assertEquals("12345678901", saved.getCpf());
+    }
+    
+    @Test
+    void testFindByEmail() {
+        // ... test implementation
+    }
+}
+```
+
+### Service Tests
+
+```java
+@SpringBootTest
+class PatientServiceTest {
+    
+    @Autowired
+    private PatientService patientService;
+    
+    @MockBean
+    private PatientRepository patientRepository;
+    
+    @Test
+    void testCreatePatient() {
+        // ... test implementation
+    }
+}
+```
+
+## Development Workflow
+
+1. **Start PostgreSQL** database
+2. **Configure** `application.properties` with database credentials
+3. **Run application**: `mvn spring-boot:run`
+4. **Access API**: http://localhost:8080
+5. **Test endpoints** using Postman, curl, or frontend
+6. **Hot reload**: Spring Boot DevTools automatically restarts on code changes
+
+## Production Deployment
+
+1. **Build JAR**: `mvn clean package`
+2. **Configure** production database (Neon.tech)
+3. **Set environment variables** for sensitive data
+4. **Deploy** JAR to cloud platform (Heroku, AWS, etc.)
+5. **Monitor** application logs and performance

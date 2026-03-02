@@ -1,0 +1,57 @@
+---
+title: 'Delete Patient'
+api: 'DELETE /patients/delete/{cpf}'
+---
+
+Deletes a patient from the system.
+
+## Path Parameters
+
+<ParamField path="cpf" type="string" required>
+  The CPF of the patient to delete (11-digit Brazilian tax ID).
+</ParamField>
+
+## Response
+
+Returns a text message indicating the deletion status.
+
+## Example Request
+
+```bash cURL
+curl -X DELETE http://localhost:8080/patients/delete/12345678901
+```
+
+## Example Response
+
+```text 200 OK
+Paciente deletado com sucesso
+```
+
+## Error Responses
+
+<ResponseExample>
+```json 404 Not Found
+{}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- This operation is permanent and cannot be undone
+- Returns 404 if no patient exists with the provided CPF
+- Due to cascade delete settings, this will also remove all consultations associated with the patient
+- Consider implementing soft delete for production use to maintain data history
+- Ensure proper authorization is implemented before allowing patient deletion
+
+<Warning>
+  This is a destructive operation. All patient data and associated consultations will be permanently removed from the system.
+</Warning>

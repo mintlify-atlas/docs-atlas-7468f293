@@ -1,0 +1,303 @@
+---
+title: System Architecture
+description: Overview of Med Agenda's system architecture, design, and technology stack
+---
+
+# System Architecture
+
+Med Agenda is a comprehensive medical appointment management system built using a modern three-tier architecture pattern, separating presentation, business logic, and data access layers.
+
+## Overall System Design
+
+The system consists of two main components:
+
+- **Backend**: RESTful API built with Spring Boot
+- **Frontend**: Single-page application built with React + Vite
+- **Database**: PostgreSQL (hosted on Neon.tech)
+
+```
+┌─────────────────────────────────────────┐
+│         Frontend (React + Vite)         │
+│  ┌───────────┬──────────┬────────────┐  │
+│  │   Pages   │Components│ API Client │  │
+│  └───────────┴──────────┴────────────┘  │
+└──────────────────┬──────────────────────┘
+                   │ HTTP/REST
+                   │
+┌──────────────────▼──────────────────────┐
+│      Backend (Spring Boot 3.3.4)        │
+│  ┌───────────────────────────────────┐  │
+│  │    Controller Layer (REST API)    │  │
+│  ├───────────────────────────────────┤  │
+│  │    Service Layer (Business Logic) │  │
+│  │  - Design Patterns Implementation  │  │
+│  ├───────────────────────────────────┤  │
+│  │  Repository Layer (Data Access)   │  │
+│  └───────────────────────────────────┘  │
+└──────────────────┬──────────────────────┘
+                   │ JPA/Hibernate
+                   │
+┌──────────────────▼──────────────────────┐
+│       Database (PostgreSQL)             │
+│  - Patients  - Consultations            │
+│  - Doctors   - Diagnoses                │
+│  - Admins    - Payments                 │
+└─────────────────────────────────────────┘
+```
+
+## Three-Tier Architecture
+
+### 1. Presentation Layer (Frontend)
+
+**Technology**: React 18.3.1 + Vite 5.4.9
+
+The presentation layer is responsible for user interface and user experience:
+
+- **Pages**: Role-based dashboards (Admin, Doctor, Patient)
+- **Components**: Reusable UI components built with Radix UI
+- **Routing**: React Router DOM for SPA navigation
+- **Styling**: Tailwind CSS with custom theming
+- **State Management**: React hooks and context
+
+### 2. Business Logic Layer (Backend Services)
+
+**Technology**: Spring Boot 3.3.4 + Java 21
+
+The business logic layer implements core functionality and design patterns:
+
+- **Controllers**: Handle HTTP requests and responses
+- **Services**: Implement business rules and orchestrate operations
+- **Design Patterns**: Factory, Strategy, Decorator, Facade, Interface Segregation
+- **Validation**: Custom validators for data integrity
+- **Email Service**: Resend Java SDK for appointment reminders
+
+### 3. Data Access Layer (Persistence)
+
+**Technology**: Spring Data JPA + Hibernate + PostgreSQL
+
+The data layer manages database operations:
+
+- **Repositories**: JPA repositories for CRUD operations
+- **Entities**: JPA entities mapped to database tables
+- **Relationships**: Proper entity relationships (OneToMany, ManyToOne)
+- **Migrations**: Managed through JPA schema generation
+
+## Technology Stack Breakdown
+
+### Backend Stack
+
+| Technology | Version | Purpose |
+|------------|---------|----------|
+| **Java** | 21 | Programming language |
+| **Spring Boot** | 3.3.4 | Application framework |
+| **Spring Data JPA** | (included) | Data persistence |
+| **Spring Security** | (included) | Security and authentication |
+| **Spring Web** | (included) | REST API |
+| **PostgreSQL** | (runtime) | Primary database |
+| **Lombok** | (latest) | Reduce boilerplate code |
+| **BCrypt** | (via Spring Security) | Password encryption |
+| **Resend Java** | 1.0.0 | Email service |
+| **PDFBox** | 2.0.30 | PDF processing |
+| **Jsoup** | 1.17.2 | HTML parsing/scraping |
+| **JUnit Jupiter** | (latest) | Testing framework |
+| **H2 Database** | (runtime) | Testing database |
+| **Maven** | - | Build tool |
+
+### Frontend Stack
+
+| Technology | Version | Purpose |
+|------------|---------|----------|
+| **React** | 18.3.1 | UI library |
+| **Vite** | 5.4.9 | Build tool and dev server |
+| **TypeScript** | 5.6.2 | Type safety |
+| **React Router DOM** | 6.27.0 | Routing |
+| **Axios** | 1.7.7 | HTTP client |
+| **Radix UI** | Various | Accessible UI primitives |
+| **Tailwind CSS** | 3.4.14 | Utility-first CSS |
+| **Lucide React** | 0.453.0 | Icon library |
+| **Class Variance Authority** | 0.7.0 | Component variants |
+| **ESLint** | 9.13.0 | Code linting |
+
+## Component Interaction
+
+### Request Flow
+
+1. **User Action**: User interacts with the React frontend
+2. **API Call**: Frontend makes HTTP request via Axios
+3. **Controller**: Spring Boot controller receives request
+4. **Service Layer**: Business logic executed (may use design patterns)
+5. **Repository**: Data access via JPA repositories
+6. **Database**: PostgreSQL executes query
+7. **Response**: Data flows back through the layers
+8. **UI Update**: React component re-renders with new data
+
+### Example: Creating a Consultation
+
+```
+User clicks "Schedule Appointment"
+    ↓
+React Component (PatientSchedule)
+    ↓
+Axios POST /consultations/create
+    ↓
+ConsultationController.createConsultation()
+    ↓
+ConsultationFacade.createConsultation()
+    ↓
+[If urgent] UrgentConsultationDecorator wraps service
+    ↓
+ConsultationService.createConsultation()
+    ↓
+ConsultationRepository.save()
+    ↓
+EmailService.sendAppointmentReminder()
+    ↓
+PostgreSQL INSERT
+    ↓
+Return Consultation DTO
+    ↓
+UI updates with confirmation
+```
+
+## Database Schema Overview
+
+The database schema follows a normalized design with proper relationships:
+
+### Core Entities
+
+**Patient** (`patienty`)
+- Primary Key: `cpf` (String, 11 chars)
+- Attributes: email, password, name, date_of_birth, address, medical_history
+- Relationships: OneToMany with Consultation
+
+**Doctor** (`doctor`)
+- Primary Key: `crm` (String)
+- Attributes: name, specialty, email, password
+- Relationships: OneToMany with Consultation
+
+**Consultation** (`consultation`)
+- Primary Key: `consultation_id` (UUID)
+- Foreign Keys: `patient_id` (cpf), `doctor_id` (crm)
+- Attributes: date_time, duracao_minutos, is_urgent, observation
+- Relationships: ManyToOne with Patient and Doctor, OneToMany with Diagnosis
+
+**Diagnosis** (`diagnosis`)
+- Primary Key: `id` (UUID)
+- Foreign Key: `consultation_id`
+- Attributes: description, diagnosis_date, cid_code
+- Relationships: ManyToOne with Consultation
+
+**Admin** (`admin`)
+- Primary Key: `id` (UUID)
+- Attributes: email, password
+- Purpose: System administration
+
+**Payment** (`payment`)
+- Primary Key: `id` (UUID)
+- Foreign Key: `consultation_id`
+- Attributes: amount, status, payment_date
+
+### Entity Relationships
+
+- Patient → Consultation (1:N)
+- Doctor → Consultation (1:N)
+- Consultation → Diagnosis (1:N)
+- Consultation → Payment (1:1)
+
+## Security Configuration
+
+The application uses Spring Security with the following configuration:
+
+- **Password Encryption**: BCrypt encoder for all passwords
+- **CSRF**: Disabled for REST API usage
+- **CORS**: Configured for frontend-backend communication
+- **Authentication**: Custom login endpoints for Admin, Doctor, and Patient roles
+- **Authorization**: Currently permits all requests (development configuration)
+
+<Note>
+The current security configuration is suitable for development. For production deployment, implement proper JWT-based authentication and role-based access control (RBAC).
+</Note>
+
+## Additional Services
+
+### Email Service
+- **Provider**: Resend
+- **Purpose**: Send appointment reminders to patients
+- **Trigger**: Automatically when consultation is created
+
+### Scraping Service
+- **PDF Processing**: Extract medical information from PDF documents
+- **Web Scraping**: Fetch medical news and doctor information
+- **Libraries**: PDFBox, Jsoup
+
+### AI Integration
+- **Chat Interface**: ChatAI component for patient assistance
+- **Backend**: Integration with AI service for medical queries
+
+## Package Organization
+
+### Backend Structure
+```
+com.ufu.gestaoConsultasMedicas/
+├── config/           # Configuration classes
+├── controller/       # REST controllers
+├── decorator/        # Decorator pattern
+├── dto/             # Data transfer objects
+├── facade/          # Facade pattern
+├── factory/         # Factory pattern
+├── history/         # History management
+├── models/          # JPA entities
+├── repository/      # Data repositories
+├── service/         # Business services
+├── strategy/        # Strategy pattern
+└── validation/      # Validators
+```
+
+### Frontend Structure
+```
+src/
+├── api/             # API client configuration
+├── components/      # Reusable components
+│   ├── ai/         # AI chat components
+│   ├── layout/     # Layout components
+│   ├── navbar/     # Navigation
+│   ├── ui/         # UI primitives
+│   └── others/     # Utility components
+├── pages/          # Page components
+│   ├── admin/      # Admin pages
+│   ├── doctor/     # Doctor pages
+│   ├── patient/    # Patient pages
+│   └── landing-page/ # Public pages
+└── lib/            # Utility functions
+```
+
+## Development vs Production
+
+### Development
+- H2 database for testing
+- CORS enabled for localhost
+- Spring Boot DevTools for hot reload
+- Vite dev server with HMR
+
+### Production
+- PostgreSQL on Neon.tech
+- Environment-based configuration
+- Optimized builds with Vite
+- Deployed on Vercel (frontend)
+
+## Performance Considerations
+
+1. **Lazy Loading**: JPA entities use `FetchType.LAZY` to avoid unnecessary queries
+2. **Connection Pooling**: Spring Boot's default HikariCP for database connections
+3. **Caching**: Can be implemented using Spring Cache abstraction
+4. **Query Optimization**: JPA repository methods optimized for common queries
+5. **Frontend Code Splitting**: React Router with lazy loading for routes
+
+## Scalability
+
+The architecture supports horizontal scaling:
+
+- **Stateless Backend**: Can run multiple instances behind a load balancer
+- **Database**: PostgreSQL supports replication and read replicas
+- **Frontend**: Static assets can be served via CDN
+- **Session Management**: Can be moved to Redis for distributed sessions

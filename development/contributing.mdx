@@ -1,0 +1,651 @@
+---
+title: Contributing Guide
+description: How to contribute to the Med Agenda project
+---
+
+# Contributing to Med Agenda
+
+Thank you for your interest in contributing to Med Agenda! This guide will help you get started with development, understand our coding standards, and submit your contributions.
+
+## Table of Contents
+
+- [How to Contribute](#how-to-contribute)
+- [Development Setup](#development-setup)
+- [Code Style Guidelines](#code-style-guidelines)
+- [Testing Approach](#testing-approach)
+- [Pull Request Process](#pull-request-process)
+- [Reporting Issues](#reporting-issues)
+- [Design Patterns](#design-patterns)
+
+## How to Contribute
+
+There are many ways to contribute to Med Agenda:
+
+1. **Report bugs** - Submit detailed bug reports with reproduction steps
+2. **Suggest features** - Propose new features or enhancements
+3. **Write code** - Fix bugs, implement features, or improve existing code
+4. **Improve documentation** - Enhance docs, add examples, fix typos
+5. **Write tests** - Increase test coverage for backend and frontend
+6. **Review pull requests** - Help review and test PRs from other contributors
+
+## Development Setup
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Java 21** or higher
+- **Node.js 18.x** or higher
+- **npm** or **yarn**
+- **PostgreSQL 14+** (or use Neon.tech)
+- **Maven 3.8+**
+- **Git**
+- A code editor (VS Code, IntelliJ IDEA, or similar)
+
+### Fork and Clone
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/med-agenda.git
+   cd med-agenda
+   ```
+3. **Add upstream remote**:
+   ```bash
+   git remote add upstream https://github.com/original-owner/med-agenda.git
+   ```
+
+### Backend Setup
+
+1. **Navigate to backend directory**:
+   ```bash
+   cd backend/gestaoConsultasMedicas
+   ```
+
+2. **Configure database**:
+   Create `src/main/resources/application-dev.properties`:
+   ```properties
+   # Database Configuration
+   spring.datasource.url=jdbc:postgresql://localhost:5432/medagenda_dev
+   spring.datasource.username=postgres
+   spring.datasource.password=yourpassword
+   
+   # JPA/Hibernate
+   spring.jpa.hibernate.ddl-auto=update
+   spring.jpa.show-sql=true
+   
+   # Server
+   server.port=8080
+   
+   # Email (Resend)
+   resend.api.key=your_api_key_here
+   ```
+
+3. **Create development database**:
+   ```sql
+   CREATE DATABASE medagenda_dev;
+   ```
+
+4. **Build and run**:
+   ```bash
+   # Build project
+   mvn clean install
+   
+   # Run application
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   ```
+
+5. **Verify backend is running**:
+   - Visit http://localhost:8080
+   - You should see "Hello World" message
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**:
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Configure environment**:
+   Create `.env` file:
+   ```bash
+   VITE_URL_API=http://localhost:8080
+   ```
+
+4. **Start development server**:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. **Verify frontend is running**:
+   - Visit http://localhost:5173
+   - You should see the Med Agenda landing page
+
+### Database Schema
+
+The application automatically creates the database schema on first run. However, you can manually create tables if needed by checking the entity models in `backend/gestaoConsultasMedicas/src/main/java/com/ufu/gestaoConsultasMedicas/models/`.
+
+## Code Style Guidelines
+
+### Java/Backend
+
+**Naming Conventions**:
+- Classes: `PascalCase` (e.g., `PatientService`)
+- Methods: `camelCase` (e.g., `createPatient`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_ATTEMPTS`)
+- Packages: `lowercase` (e.g., `com.ufu.gestaoConsultasMedicas.service`)
+
+**Code Structure**:
+```java
+// 1. Package declaration
+package com.ufu.gestaoConsultasMedicas.service;
+
+// 2. Imports (grouped by category)
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.ufu.gestaoConsultasMedicas.models.Patient;
+import com.ufu.gestaoConsultasMedicas.repository.PatientRepository;
+
+// 3. Class documentation
+/**
+ * Service class for managing patient operations.
+ */
+@Service
+public class PatientService {
+    
+    // 4. Fields (with proper visibility)
+    private final PatientRepository patientRepository;
+    
+    // 5. Constructor injection (preferred)
+    @Autowired
+    public PatientService(PatientRepository patientRepository) {
+        this.patientRepository = patientRepository;
+    }
+    
+    // 6. Public methods
+    public Patient createPatient(PatientDTO dto) {
+        // Implementation
+    }
+    
+    // 7. Private helper methods
+    private void validatePatient(Patient patient) {
+        // Implementation
+    }
+}
+```
+
+**Best Practices**:
+- Use constructor injection instead of field injection
+- Follow Single Responsibility Principle
+- Write self-documenting code with clear variable names
+- Add comments only when necessary to explain "why", not "what"
+- Use Optional instead of returning null
+- Throw specific exceptions with meaningful messages
+- Use Lombok annotations to reduce boilerplate (@Getter, @Setter, @NoArgsConstructor, etc.)
+
+### TypeScript/Frontend
+
+**Naming Conventions**:
+- Components: `PascalCase` (e.g., `PatientDashboard.tsx`)
+- Functions/Variables: `camelCase` (e.g., `fetchPatients`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `API_BASE_URL`)
+- Interfaces/Types: `PascalCase` with "I" prefix optional (e.g., `Patient` or `IPatient`)
+
+**Component Structure**:
+```typescript
+// 1. Imports
+import { useState, useEffect } from 'react';
+import api from '@/api/api';
+import { Button } from '@/components/ui/button';
+
+// 2. Types/Interfaces
+interface Patient {
+  cpf: string;
+  name: string;
+  email: string;
+}
+
+interface Props {
+  onSelect?: (patient: Patient) => void;
+}
+
+// 3. Component
+export default function PatientList({ onSelect }: Props) {
+  // State declarations
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Effects
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+  
+  // Event handlers
+  const fetchPatients = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/patients/list');
+      setPatients(response.data);
+    } catch (err) {
+      setError('Failed to fetch patients');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSelect = (patient: Patient) => {
+    onSelect?.(patient);
+  };
+  
+  // Render logic
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  
+  return (
+    <div>
+      {patients.map(patient => (
+        <div key={patient.cpf} onClick={() => handleSelect(patient)}>
+          {patient.name}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+**Best Practices**:
+- Use TypeScript for type safety
+- Prefer functional components with hooks
+- Use `const` for all variables unless reassignment is needed
+- Extract reusable logic into custom hooks
+- Use async/await instead of promise chains
+- Handle loading and error states properly
+- Keep components small and focused
+- Use Tailwind CSS classes for styling
+
+### Git Commit Messages
+
+Follow conventional commit format:
+
+```
+type(scope): subject
+
+body (optional)
+
+footer (optional)
+```
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+**Examples**:
+```bash
+feat(patient): add patient registration validation
+
+fix(consultation): resolve urgent consultation decorator bug
+
+docs(readme): update API endpoint documentation
+
+refactor(service): apply factory pattern to patient creation
+
+test(repository): add unit tests for PatientRepository
+```
+
+## Testing Approach
+
+### Backend Testing
+
+**Unit Tests** - Test individual components in isolation:
+
+```java
+@SpringBootTest
+class PatientServiceTest {
+    
+    @Autowired
+    private PatientService patientService;
+    
+    @MockBean
+    private PatientRepository patientRepository;
+    
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+    
+    @Test
+    void shouldCreatePatientSuccessfully() {
+        // Arrange
+        PatientDTO dto = new PatientDTO(/* ... */);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed");
+        when(patientRepository.save(any())).thenReturn(new Patient());
+        
+        // Act
+        Patient result = patientService.createPatient(dto);
+        
+        // Assert
+        assertNotNull(result);
+        verify(patientRepository, times(1)).save(any());
+    }
+    
+    @Test
+    void shouldThrowExceptionForInvalidCpf() {
+        // Test validation logic
+    }
+}
+```
+
+**Integration Tests** - Test multiple components together:
+
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+class PatientControllerIntegrationTest {
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @Test
+    void shouldCreateAndRetrievePatient() {
+        // Create patient
+        PatientDTO dto = new PatientDTO(/* ... */);
+        ResponseEntity<Patient> createResponse = restTemplate.postForEntity(
+            "/patients/create", dto, Patient.class
+        );
+        
+        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+        
+        // Retrieve patient
+        ResponseEntity<Patient> getResponse = restTemplate.getForEntity(
+            "/patients/" + dto.getCpf(), Patient.class
+        );
+        
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        assertEquals(dto.getName(), getResponse.getBody().getName());
+    }
+}
+```
+
+**Repository Tests**:
+
+```java
+@DataJpaTest
+class PatientRepositoryTest {
+    
+    @Autowired
+    private PatientRepository patientRepository;
+    
+    @Test
+    void shouldFindPatientByEmail() {
+        // Arrange
+        Patient patient = new Patient(/* ... */);
+        patientRepository.save(patient);
+        
+        // Act
+        Optional<Patient> found = patientRepository.findByEmail("test@email.com");
+        
+        // Assert
+        assertTrue(found.isPresent());
+        assertEquals("test@email.com", found.get().getEmail());
+    }
+}
+```
+
+### Frontend Testing
+
+**Component Tests** (using React Testing Library):
+
+```typescript
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import PatientList from './PatientList';
+import api from '@/api/api';
+
+jest.mock('@/api/api');
+
+describe('PatientList', () => {
+  it('should render patients after loading', async () => {
+    // Arrange
+    const mockPatients = [
+      { cpf: '123', name: 'John Doe', email: 'john@email.com' },
+    ];
+    (api.get as jest.Mock).mockResolvedValue({ data: mockPatients });
+    
+    // Act
+    render(<PatientList />);
+    
+    // Assert
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+  });
+  
+  it('should display error message on API failure', async () => {
+    // Test error handling
+  });
+});
+```
+
+### Running Tests
+
+**Backend**:
+```bash
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=PatientServiceTest
+
+# Run with coverage
+mvn test jacoco:report
+```
+
+**Frontend**:
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+```
+
+## Pull Request Process
+
+### Before Submitting
+
+1. **Update your fork**:
+   ```bash
+   git fetch upstream
+   git checkout main
+   git merge upstream/main
+   ```
+
+2. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/bug-description
+   ```
+
+3. **Make your changes** following code style guidelines
+
+4. **Write tests** for new functionality
+
+5. **Run tests** to ensure nothing is broken:
+   ```bash
+   # Backend
+   cd backend/gestaoConsultasMedicas
+   mvn clean test
+   
+   # Frontend
+   cd frontend
+   npm test
+   npm run lint
+   npm run build  # Ensure build succeeds
+   ```
+
+6. **Commit your changes** with clear commit messages:
+   ```bash
+   git add .
+   git commit -m "feat(patient): add email validation"
+   ```
+
+7. **Push to your fork**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+### Submitting the Pull Request
+
+1. **Open a pull request** on GitHub from your fork to the main repository
+
+2. **Fill out the PR template**:
+   ```markdown
+   ## Description
+   Brief description of the changes
+   
+   ## Type of Change
+   - [ ] Bug fix
+   - [ ] New feature
+   - [ ] Breaking change
+   - [ ] Documentation update
+   
+   ## Testing
+   - [ ] Unit tests added/updated
+   - [ ] Integration tests added/updated
+   - [ ] Manual testing performed
+   
+   ## Checklist
+   - [ ] Code follows style guidelines
+   - [ ] Self-review completed
+   - [ ] Comments added for complex code
+   - [ ] Documentation updated
+   - [ ] No new warnings generated
+   - [ ] Tests pass locally
+   ```
+
+3. **Link related issues**: Reference any related issues using `Fixes #123` or `Closes #456`
+
+4. **Request review** from maintainers
+
+5. **Address feedback**: Make requested changes and push updates
+
+6. **Keep PR updated**: Rebase on main if needed:
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   git push --force-with-lease
+   ```
+
+### PR Review Criteria
+
+Your PR will be reviewed for:
+
+- **Code quality**: Follows style guidelines and best practices
+- **Functionality**: Works as intended and solves the problem
+- **Tests**: Adequate test coverage for new code
+- **Documentation**: Updated docs if needed
+- **Design patterns**: Uses appropriate patterns where applicable
+- **Performance**: No significant performance degradation
+- **Security**: No security vulnerabilities introduced
+
+## Reporting Issues
+
+### Bug Reports
+
+When reporting bugs, include:
+
+1. **Clear title** describing the issue
+2. **Steps to reproduce** the bug
+3. **Expected behavior** vs actual behavior
+4. **Environment details**:
+   - OS and version
+   - Java version
+   - Node.js version
+   - Browser (for frontend issues)
+5. **Screenshots or logs** if applicable
+6. **Possible solution** if you have ideas
+
+**Template**:
+```markdown
+**Bug Description**
+A clear description of the bug.
+
+**To Reproduce**
+1. Go to '...'
+2. Click on '...'
+3. See error
+
+**Expected Behavior**
+What should happen.
+
+**Actual Behavior**
+What actually happens.
+
+**Environment**
+- OS: [e.g., Ubuntu 22.04]
+- Java: [e.g., 21]
+- Node: [e.g., 18.17.0]
+- Browser: [e.g., Chrome 120]
+
+**Logs/Screenshots**
+[Attach relevant logs or screenshots]
+```
+
+### Feature Requests
+
+For feature requests, include:
+
+1. **Problem statement**: What problem does this solve?
+2. **Proposed solution**: How should it work?
+3. **Alternatives considered**: Other approaches you've thought about
+4. **Additional context**: Mockups, examples, etc.
+
+## Design Patterns
+
+When contributing, follow the established design patterns:
+
+1. **Factory Pattern**: For object creation with validation
+2. **Strategy Pattern**: For interchangeable algorithms
+3. **Decorator Pattern**: For adding behavior dynamically
+4. **Facade Pattern**: For simplifying complex subsystems
+5. **Memento Pattern**: For state management and history
+
+See [Design Patterns](/development/design-patterns) for detailed examples.
+
+## Design Principles
+
+Adhere to these principles:
+
+1. **Single Responsibility Principle (SRP)**: Each class should have one reason to change
+2. **Open/Closed Principle (OCP)**: Open for extension, closed for modification
+3. **Interface Segregation Principle (ISP)**: Don't force clients to depend on unused methods
+
+## Questions?
+
+If you have questions about contributing:
+
+- Check existing documentation
+- Search closed issues and PRs
+- Open a new issue with the "question" label
+- Reach out to maintainers
+
+Thank you for contributing to Med Agenda!

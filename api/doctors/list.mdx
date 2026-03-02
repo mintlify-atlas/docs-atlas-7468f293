@@ -1,0 +1,79 @@
+---
+title: 'List All Doctors'
+api: 'GET /doctor'
+---
+
+Retrieve a list of all doctors in the system.
+
+## Response
+
+Returns an array of all doctor objects.
+
+<ResponseField name="[]" type="array">
+  Array of all Doctor objects in the system.
+  
+  <ResponseField name="crm" type="string">
+    Doctor's CRM number.
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    Doctor's email address.
+  </ResponseField>
+  
+  <ResponseField name="password" type="string">
+    Doctor's password.
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    Doctor's full name.
+  </ResponseField>
+  
+  <ResponseField name="specialty" type="string">
+    Doctor's medical specialty.
+  </ResponseField>
+  
+  <ResponseField name="telephone" type="string">
+    Doctor's telephone number.
+  </ResponseField>
+  
+  <ResponseField name="consultationValue" type="number">
+    Consultation price.
+  </ResponseField>
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X GET http://localhost:8080/doctor
+```
+
+## Example Response
+
+```json
+[
+  {
+    "crm": "123456789",
+    "email": "dr.silva@hospital.com",
+    "password": "securePassword123",
+    "name": "Dr. João Silva",
+    "specialty": "Cardiology",
+    "telephone": "+5534999887766",
+    "consultationValue": 250.00
+  },
+  {
+    "crm": "987654321",
+    "email": "dr.santos@hospital.com",
+    "password": "password456",
+    "name": "Dr. Maria Santos",
+    "specialty": "Pediatrics",
+    "telephone": "+5534988776655",
+    "consultationValue": 200.00
+  }
+]
+```
+
+## Error Responses
+
+<ResponseField name="200 OK (Empty Array)" type="success">
+  No doctors in the system. Returns an empty array `[]`.
+</ResponseField>

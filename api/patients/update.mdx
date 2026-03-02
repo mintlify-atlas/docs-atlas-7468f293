@@ -1,0 +1,117 @@
+---
+title: 'Update Patient'
+api: 'PUT /patients/update/{cpf}'
+---
+
+Updates an existing patient's information.
+
+## Path Parameters
+
+<ParamField path="cpf" type="string" required>
+  The CPF of the patient to update (11-digit Brazilian tax ID).
+</ParamField>
+
+## Request Body
+
+<ParamField body="name" type="string">
+  Updated patient name.
+</ParamField>
+
+<ParamField body="dateOfBirth" type="string">
+  Updated date of birth in ISO 8601 format (YYYY-MM-DD).
+</ParamField>
+
+<ParamField body="address" type="string">
+  Updated address (maximum 255 characters).
+</ParamField>
+
+<ParamField body="medicalHistory" type="string">
+  Updated medical history notes.
+</ParamField>
+
+## Response
+
+<ResponseField name="cpf" type="string">
+  The patient's CPF.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The updated patient name.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The patient's email address (unchanged).
+</ResponseField>
+
+<ResponseField name="dateOfBirth" type="string">
+  The updated date of birth.
+</ResponseField>
+
+<ResponseField name="address" type="string">
+  The updated address.
+</ResponseField>
+
+<ResponseField name="medicalHistory" type="string">
+  The updated medical history.
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X PUT http://localhost:8080/patients/update/12345678901 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Maria Silva Santos",
+    "dateOfBirth": "1990-05-15",
+    "address": "Rua Nova, 456, São Paulo, SP",
+    "medicalHistory": "No known allergies. Previous surgery in 2015. Updated in 2026."
+  }'
+```
+
+## Example Response
+
+```json 200 OK
+{
+  "cpf": "12345678901",
+  "name": "Maria Silva Santos",
+  "email": "maria.silva@example.com",
+  "dateOfBirth": "1990-05-15",
+  "address": "Rua Nova, 456, São Paulo, SP",
+  "medicalHistory": "No known allergies. Previous surgery in 2015. Updated in 2026."
+}
+```
+
+## Error Responses
+
+<ResponseExample>
+```json 404 Not Found
+{}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 400 Bad Request
+{
+  "error": "Validation failed",
+  "message": "Invalid date format for dateOfBirth"
+}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- The CPF in the URL path identifies which patient to update
+- Only the fields provided in the request body will be updated
+- Email and password cannot be updated through this endpoint
+- Returns 404 if no patient exists with the provided CPF
+- Date of birth must be in ISO 8601 format (YYYY-MM-DD)
+- All fields in the request body are optional - only send the fields you want to update

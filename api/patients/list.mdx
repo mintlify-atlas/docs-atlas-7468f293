@@ -1,0 +1,87 @@
+---
+title: 'List Patients'
+api: 'GET /patients/list'
+---
+
+Retrieves a list of all registered patients in the system.
+
+## Response
+
+Returns an array of patient objects.
+
+<ResponseField name="patients" type="array">
+  Array of patient objects.
+  
+  <Expandable title="Patient Object">
+    <ResponseField name="cpf" type="string">
+      The patient's CPF.
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      The patient's full name.
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      The patient's email address.
+    </ResponseField>
+    
+    <ResponseField name="dateOfBirth" type="string">
+      The patient's date of birth in ISO 8601 format.
+    </ResponseField>
+    
+    <ResponseField name="address" type="string">
+      The patient's address.
+    </ResponseField>
+    
+    <ResponseField name="medicalHistory" type="string">
+      The patient's medical history.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+```bash cURL
+curl -X GET http://localhost:8080/patients/list
+```
+
+## Example Response
+
+```json 200 OK
+[
+  {
+    "cpf": "12345678901",
+    "name": "Maria Silva",
+    "email": "maria.silva@example.com",
+    "dateOfBirth": "1990-05-15",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "medicalHistory": "No known allergies. Previous surgery in 2015."
+  },
+  {
+    "cpf": "98765432109",
+    "name": "João Santos",
+    "email": "joao.santos@example.com",
+    "dateOfBirth": "1985-11-20",
+    "address": "Av. Paulista, 1000, São Paulo, SP",
+    "medicalHistory": "Diabetic. Regular checkups required."
+  }
+]
+```
+
+## Error Responses
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- Returns an empty array `[]` if no patients are registered in the system
+- Password fields are never included in the response for security reasons
+- This endpoint does not support pagination in the current implementation
+- Consider implementing pagination for production use with large datasets

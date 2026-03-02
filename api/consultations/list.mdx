@@ -1,0 +1,128 @@
+---
+title: 'List All Consultations'
+api: 'GET /consultations/all'
+description: 'Retrieve a list of all consultations in the system'
+---
+
+Returns a complete list of all consultations scheduled in the system, including past, present, and future appointments. Each consultation includes full patient and doctor information.
+
+## Response
+
+Returns an array of consultation objects.
+
+<ResponseField name="consultations" type="array">
+  Array of consultation objects
+  
+  <Expandable title="Consultation object">
+    <ResponseField name="consultationId" type="string">
+      UUID of the consultation
+    </ResponseField>
+    
+    <ResponseField name="dateTime" type="string">
+      Scheduled date and time in ISO 8601 format
+    </ResponseField>
+    
+    <ResponseField name="duracaoMinutos" type="integer">
+      Duration of the consultation in minutes
+    </ResponseField>
+    
+    <ResponseField name="patient" type="object">
+      Patient information including cpf, name, email, dateOfBirth, address, and medicalHistory
+    </ResponseField>
+    
+    <ResponseField name="doctor" type="object">
+      Doctor information including crm, name, email, specialty, telephone, and consultationValue
+    </ResponseField>
+    
+    <ResponseField name="isUrgent" type="boolean">
+      Whether this is an urgent consultation
+    </ResponseField>
+    
+    <ResponseField name="observation" type="string">
+      Additional notes or observations
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.medagenda.com/consultations/all
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.medagenda.com/consultations/all');
+const consultations = await response.json();
+
+console.log(`Total consultations: ${consultations.length}`);
+```
+
+```python Python
+import requests
+
+response = requests.get('https://api.medagenda.com/consultations/all')
+consultations = response.json()
+
+print(f'Total consultations: {len(consultations)}')
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+[
+  {
+    "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+    "dateTime": "2024-03-15T14:30:00",
+    "duracaoMinutos": 60,
+    "patient": {
+      "cpf": "12345678901",
+      "name": "João Silva",
+      "email": "joao.silva@email.com",
+      "dateOfBirth": "1985-06-15",
+      "address": "Rua das Flores, 123, São Paulo, SP",
+      "medicalHistory": "Hypertension, controlled with medication"
+    },
+    "doctor": {
+      "crm": "123456SP",
+      "name": "Dr. Maria Santos",
+      "email": "maria.santos@medagenda.com",
+      "specialty": "Cardiologia",
+      "telephone": "+5511987654321",
+      "consultationValue": 350.00
+    },
+    "isUrgent": false,
+    "observation": "Patient reports mild headaches for the past week"
+  },
+  {
+    "consultationId": "660f9511-f3ac-52e5-b827-557766551111",
+    "dateTime": "2024-03-16T10:00:00",
+    "duracaoMinutos": 60,
+    "patient": {
+      "cpf": "98765432109",
+      "name": "Maria Oliveira",
+      "email": "maria.oliveira@email.com",
+      "dateOfBirth": "1990-08-22",
+      "address": "Av. Paulista, 1000, São Paulo, SP",
+      "medicalHistory": "No significant medical history"
+    },
+    "doctor": {
+      "crm": "654321RJ",
+      "name": "Dr. Carlos Mendes",
+      "email": "carlos.mendes@medagenda.com",
+      "specialty": "Clínico Geral",
+      "telephone": "+5521987654321",
+      "consultationValue": 280.00
+    },
+    "isUrgent": true,
+    "observation": "Urgent consultation requested - high fever"
+  }
+]
+```
+
+```json 200 - Empty List
+[]
+```
+
+</ResponseExample>

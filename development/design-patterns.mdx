@@ -1,0 +1,503 @@
+---
+title: Design Patterns
+description: Design patterns and principles implemented in Med Agenda
+---
+
+# Design Patterns
+
+Med Agenda implements **5 design patterns** and follows **3 design principles** to ensure maintainable, scalable, and extensible code.
+
+## Implemented Design Patterns
+
+### 1. Factory Pattern
+
+**Purpose**: Encapsulate object creation logic with validation
+
+**Location**: `factory/PatientFactory.java`
+
+**Implementation**:
+
+```java
+package com.ufu.gestaoConsultasMedicas.factory;
+
+import com.ufu.gestaoConsultasMedicas.models.Patient;
+import com.ufu.gestaoConsultasMedicas.validation.PatientValidator;
+import java.time.LocalDate;
+
+public class PatientFactory {
+    
+    public static Patient createPatient(
+        String cpf, 
+        String name, 
+        LocalDate dateOfBirth, 
+        String address, 
+        String medicalHistory, 
+        String email, 
+        String hashedPassword
+    ) {
+        // Validate before creating
+        PatientValidator.validateCpf(cpf);
+        PatientValidator.validateDateOfBirth(dateOfBirth);
+        PatientValidator.validateAge(dateOfBirth);
+        
+        return new Patient(cpf, email, hashedPassword, name, 
+                          dateOfBirth, address, medicalHistory);
+    }
+}
+```
+
+**Benefits**:
+- Centralizes validation logic
+- Ensures all Patient objects are created with valid data
+- Prevents direct constructor usage that might skip validation
+- Makes it easy to modify creation logic in one place
+
+**Usage Example**:
+```java
+// In PatientService
+Patient patient = PatientFactory.createPatient(
+    cpf, name, dateOfBirth, address, 
+    medicalHistory, email, hashedPassword
+);
+```
+
+### 2. Strategy Pattern
+
+**Purpose**: Define a family of algorithms for doctor search and make them interchangeable
+
+**Location**: `strategy/` package
+
+**Implementation**:
+
+**Interface** (`DoctorSearchStrategy.java`):
+```java
+public interface DoctorSearchStrategy {
+    List<Doctor> search(String keyword, List<Doctor> doctors);
+}
+```
+
+**Concrete Strategies**:
+
+1. **SearchDoctorByName.java**:
+```java
+public class SearchDoctorByName implements DoctorSearchStrategy {
+    @Override
+    public List<Doctor> search(String keyword, List<Doctor> doctors) {
+        return doctors.stream()
+            .filter(doctor -> doctor.getName().equalsIgnoreCase(keyword))
+            .collect(Collectors.toList());
+    }
+}
+```
+
+2. **SearchDoctorByCrm.java**: Searches by CRM number
+3. **SearchDoctorByEmail.java**: Searches by email address
+4. **SearchDoctorBySpecialty.java**: Searches by medical specialty
+
+**Benefits**:
+- Easy to add new search criteria without modifying existing code
+- Each strategy is independent and testable
+- Client code doesn't need to know implementation details
+- Follows Open/Closed Principle
+
+**Usage Example**:
+```java
+// In DoctorService
+DoctorSearchStrategy strategy;
+
+if (crm != null) {
+    strategy = new SearchDoctorByCrm();
+} else if (name != null) {
+    strategy = new SearchDoctorByName();
+} else if (specialty != null) {
+    strategy = new SearchDoctorBySpecialty();
+}
+
+List<Doctor> results = strategy.search(keyword, allDoctors);
+```
+
+### 3. Decorator Pattern
+
+**Purpose**: Dynamically add behavior (urgency) to consultation creation
+
+**Location**: `decorator/` package
+
+**Implementation**:
+
+**Component Interface** (`ConsultationService.java`):
+```java
+public interface ConsultationService {
+    Consultation createConsultation(
+        Patient patient, 
+        Doctor doctor, 
+        LocalDateTime dateTime, 
+        String observation
+    );
+}
+```
+
+**Concrete Component** (`ConsultationServiceImpl.java`):
+```java
+@Service
+public class ConsultationServiceImpl implements ConsultationService {
+    @Override
+    public Consultation createConsultation(
+        Patient patient, 
+        Doctor doctor, 
+        LocalDateTime dateTime, 
+        String observation
+    ) {
+        Consultation consultation = new Consultation();
+        consultation.setPatient(patient);
+        consultation.setDoctor(doctor);
+        consultation.setDateTime(dateTime);
+        consultation.setObservation(observation);
+        consultation.setUrgent(false); // Default
+        return consultation;
+    }
+}
+```
+
+**Decorator** (`UrgentConsultationDecorator.java`):
+```java
+public class UrgentConsultationDecorator implements ConsultationService {
+    
+    private final ConsultationService decoratedService;
+    
+    public UrgentConsultationDecorator(ConsultationService decoratedService) {
+        this.decoratedService = decoratedService;
+    }
+    
+    @Override
+    public Consultation createConsultation(
+        Patient patient, 
+        Doctor doctor, 
+        LocalDateTime dateTime, 
+        String observation
+    ) {
+        // Delegate to wrapped service
+        Consultation consultation = decoratedService.createConsultation(
+            patient, doctor, dateTime, observation
+        );
+        
+        // Add additional behavior
+        consultation.setUrgent(true);
+        return consultation;
+    }
+}
+```
+
+**Benefits**:
+- Add responsibilities to objects dynamically
+- More flexible than static inheritance
+- Can stack multiple decorators
+- Follows Single Responsibility Principle
+
+**Usage** (see Facade pattern below):
+```java
+ConsultationService service = consultationServiceImpl;
+if (isUrgent) {
+    service = new UrgentConsultationDecorator(service);
+}
+Consultation consultation = service.createConsultation(...);
+```
+
+### 4. Facade Pattern
+
+**Purpose**: Provide a simplified interface for consultation creation with decorator logic
+
+**Location**: `facade/ConsultationFacade.java`
+
+**Implementation**:
+
+```java
+@Component
+public class ConsultationFacade {
+    
+    private final ConsultationService consultationService;
+    
+    @Autowired
+    public ConsultationFacade(ConsultationServiceImpl consultationServiceImpl) {
+        this.consultationService = consultationServiceImpl;
+    }
+    
+    public Consultation createConsultation(
+        Patient patient, 
+        Doctor doctor, 
+        LocalDateTime dateTime, 
+        boolean isUrgent, 
+        String observation
+    ) {
+        ConsultationService service = consultationService;
+        
+        // Apply decorator if urgent
+        if (isUrgent) {
+            service = new UrgentConsultationDecorator(service);
+        }
+        
+        return service.createConsultation(patient, doctor, dateTime, observation);
+    }
+}
+```
+
+**Benefits**:
+- Hides the complexity of decorator pattern from controllers
+- Provides a simple, unified interface
+- Makes the system easier to use and understand
+- Reduces coupling between client code and subsystems
+
+**Usage in Controller**:
+```java
+@PostMapping("/create")
+public ResponseEntity<Consultation> createConsultation(
+    @RequestBody ConsultationDTO dto
+) {
+    Patient patient = patientRepository.findById(dto.getPatientCpf()).orElseThrow();
+    Doctor doctor = doctorRepository.findById(dto.getDoctorCrm()).orElseThrow();
+    
+    // Simple call to facade - complexity hidden
+    Consultation consultation = consultationFacade.createConsultation(
+        patient, doctor, dto.getDateTime(), dto.isUrgent(), dto.getObservation()
+    );
+    
+    return ResponseEntity.ok(consultation);
+}
+```
+
+### 5. Memento Pattern (History)
+
+**Purpose**: Maintain consultation history without exposing implementation details
+
+**Location**: `history/` package
+
+**Implementation**:
+
+**Segregated Interfaces**:
+
+```java
+// ConsultationHistoryCreation.java
+public interface ConsultationHistoryCreation {
+    void addConsultationToHistory(UUID patientId, UUID consultationId);
+}
+
+// ConsultationHistoryQuery.java
+public interface ConsultationHistoryQuery {
+    List<Consultation> getPatientConsultationHistory(UUID patientId);
+    List<Consultation> getDoctorConsultationHistory(UUID doctorId);
+}
+```
+
+**Implementation** (`ConsultationHistoryService.java`):
+```java
+@Service
+public class ConsultationHistoryService 
+    implements ConsultationHistoryCreation, ConsultationHistoryQuery {
+    
+    private final ConsultationRepository consultationRepository;
+    
+    @Autowired
+    public ConsultationHistoryService(ConsultationRepository consultationRepository) {
+        this.consultationRepository = consultationRepository;
+    }
+    
+    @Override
+    public void addConsultationToHistory(UUID patientId, UUID consultationId) {
+        System.out.println("Consulta adicionada ao histórico do paciente com ID " + patientId);
+    }
+    
+    @Override
+    public List<Consultation> getPatientConsultationHistory(UUID patientId) {
+        return consultationRepository.findByPatient_Cpf(patientId.toString());
+    }
+    
+    @Override
+    public List<Consultation> getDoctorConsultationHistory(UUID doctorId) {
+        return consultationRepository.findByDoctor_Crm(doctorId.toString());
+    }
+}
+```
+
+**Benefits**:
+- Encapsulates history management
+- Allows retrieval of past consultations
+- Maintains patient and doctor consultation history
+- Supports audit and tracking requirements
+
+## Design Principles Applied
+
+### 1. Interface Segregation Principle (ISP)
+
+**Definition**: Clients should not be forced to depend on interfaces they don't use.
+
+**Implementation**: The history interfaces are segregated by responsibility:
+
+```java
+// Separate interface for creation
+public interface ConsultationHistoryCreation {
+    void addConsultationToHistory(UUID patientId, UUID consultationId);
+}
+
+// Separate interface for querying
+public interface ConsultationHistoryQuery {
+    List<Consultation> getPatientConsultationHistory(UUID patientId);
+    List<Consultation> getDoctorConsultationHistory(UUID doctorId);
+}
+```
+
+**Why it matters**:
+- A service that only needs to read history doesn't depend on creation methods
+- Reduces coupling and makes the code more maintainable
+- Easier to test and mock specific functionality
+
+### 2. Single Responsibility Principle (SRP)
+
+**Definition**: A class should have only one reason to change.
+
+**Examples**:
+
+1. **PatientFactory**: Only responsible for creating valid Patient objects
+2. **UrgentConsultationDecorator**: Only adds urgency flag
+3. **SearchDoctorByName**: Only implements name-based search
+4. **EmailService**: Only handles email sending
+5. **PatientValidator**: Only validates patient data
+
+**Benefits**:
+- Easier to understand and maintain
+- Changes to one responsibility don't affect others
+- Better testability
+
+### 3. Open/Closed Principle (OCP)
+
+**Definition**: Software entities should be open for extension but closed for modification.
+
+**Implementation**:
+
+**Strategy Pattern** - Adding new search criteria:
+```java
+// Add new strategy without modifying existing code
+public class SearchDoctorByPhone implements DoctorSearchStrategy {
+    @Override
+    public List<Doctor> search(String keyword, List<Doctor> doctors) {
+        return doctors.stream()
+            .filter(doctor -> doctor.getPhone().equals(keyword))
+            .collect(Collectors.toList());
+    }
+}
+```
+
+**Decorator Pattern** - Adding new consultation behaviors:
+```java
+// Add new decorator without modifying base service
+public class PriorityConsultationDecorator implements ConsultationService {
+    private final ConsultationService decoratedService;
+    
+    @Override
+    public Consultation createConsultation(...) {
+        Consultation consultation = decoratedService.createConsultation(...);
+        consultation.setPriority("HIGH");
+        return consultation;
+    }
+}
+```
+
+## Pattern Interactions
+
+The patterns work together to create a flexible system:
+
+```
+Controller
+    ↓
+ConsultationFacade (Facade Pattern)
+    ↓
+Decides if urgent → UrgentConsultationDecorator (Decorator Pattern)
+    ↓
+ConsultationServiceImpl
+    ↓
+PatientFactory (Factory Pattern) - validates patient
+    ↓
+ConsultationRepository
+    ↓
+ConsultationHistoryService (Memento Pattern) - tracks history
+```
+
+## Best Practices
+
+### When to Use Each Pattern
+
+**Factory Pattern**:
+- ✅ Complex object creation with validation
+- ✅ Need to ensure objects are created consistently
+- ✅ Want to hide creation logic from clients
+
+**Strategy Pattern**:
+- ✅ Multiple algorithms for the same task
+- ✅ Need to switch algorithms at runtime
+- ✅ Want to avoid conditional statements
+
+**Decorator Pattern**:
+- ✅ Need to add responsibilities dynamically
+- ✅ Want to avoid creating many subclasses
+- ✅ Behavior combinations are needed
+
+**Facade Pattern**:
+- ✅ Simplify complex subsystems
+- ✅ Provide a unified interface
+- ✅ Reduce coupling between clients and subsystems
+
+**Memento Pattern**:
+- ✅ Need to capture and restore object state
+- ✅ Want to maintain history
+- ✅ Implement undo/redo functionality
+
+## Testing the Patterns
+
+### Factory Pattern Test
+```java
+@Test
+void testFactoryValidatesData() {
+    assertThrows(InvalidCpfException.class, () -> {
+        PatientFactory.createPatient(
+            "invalid", "John", LocalDate.now(), 
+            "Address", "History", "email@test.com", "hash"
+        );
+    });
+}
+```
+
+### Strategy Pattern Test
+```java
+@Test
+void testSearchByName() {
+    DoctorSearchStrategy strategy = new SearchDoctorByName();
+    List<Doctor> results = strategy.search("Dr. Smith", allDoctors);
+    assertEquals(1, results.size());
+    assertEquals("Dr. Smith", results.get(0).getName());
+}
+```
+
+### Decorator Pattern Test
+```java
+@Test
+void testUrgentDecorator() {
+    ConsultationService base = new ConsultationServiceImpl();
+    ConsultationService decorated = new UrgentConsultationDecorator(base);
+    
+    Consultation consultation = decorated.createConsultation(
+        patient, doctor, dateTime, "observation"
+    );
+    
+    assertTrue(consultation.isUrgent());
+}
+```
+
+## Summary
+
+Med Agenda demonstrates professional software engineering through:
+
+- **5 Design Patterns**: Factory, Strategy, Decorator, Facade, Memento
+- **3 Design Principles**: ISP, SRP, OCP
+- **Clean Architecture**: Clear separation of concerns
+- **Extensibility**: Easy to add new features without modifying existing code
+- **Maintainability**: Well-organized, testable code
+
+These patterns and principles work together to create a robust, scalable medical appointment management system.

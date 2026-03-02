@@ -1,0 +1,115 @@
+---
+title: 'Admin Login'
+api: 'POST /admin/login'
+---
+
+Authenticates an administrator using email and password credentials.
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  Administrator's email address
+  
+  Example: `"admin@medagenda.com"`
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Administrator's password
+</ParamField>
+
+## Response
+
+Returns a plain text message indicating the login status.
+
+<ResponseField name="Success" type="string">
+  `"Login successful!"` - Returned when authentication succeeds (HTTP 200)
+</ResponseField>
+
+<ResponseField name="Error" type="string">
+  `"Invalid email or password."` - Returned when authentication fails (HTTP 401)
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST http://localhost:8080/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@medagenda.com",
+    "password": "SecurePassword123!"
+  }'
+```
+
+```java Java
+Admin loginRequest = new Admin();
+loginRequest.setEmail("admin@medagenda.com");
+loginRequest.setPassword("SecurePassword123!");
+
+ResponseEntity<String> response = adminController.login(loginRequest);
+```
+
+```javascript JavaScript/Fetch
+fetch('http://localhost:8080/admin/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    email: 'admin@medagenda.com',
+    password: 'SecurePassword123!'
+  })
+})
+.then(response => response.text())
+.then(data => console.log(data));
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```text Success Response (200)
+Login successful!
+```
+
+```text Error Response (401)
+Invalid email or password.
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="401 Unauthorized" type="string">
+  Returned when the email doesn't exist or the password is incorrect
+  
+  **Response body**: `"Invalid email or password."`
+</ResponseField>
+
+## Security Considerations
+
+<Warning>
+  **Security Recommendations**:
+  - **Session Management**: This endpoint currently only returns a success message. In production, implement proper session management or JWT token generation
+  - **Rate Limiting**: Implement rate limiting to prevent brute force attacks (e.g., max 5 attempts per minute)
+  - **Password Hashing**: Ensure passwords are compared using secure hashing algorithms (bcrypt, argon2, etc.)
+  - **Account Lockout**: Consider implementing account lockout after multiple failed attempts
+  - **HTTPS Only**: Always use HTTPS in production to encrypt credentials in transit
+  - **Audit Logging**: Log all login attempts (successful and failed) for security monitoring
+  - **Two-Factor Authentication**: Consider implementing 2FA for additional security
+</Warning>
+
+## Implementation Notes
+
+<Note>
+  **Current Limitations**:
+  - The endpoint returns a simple text message instead of a session token or JWT
+  - No session state is maintained after successful login
+  - Consider enhancing this endpoint to return an authentication token that can be used for subsequent API requests
+</Note>
+
+## Next Steps
+
+After successful login, you may want to:
+1. Store the session/token securely (if implemented)
+2. Use the token in subsequent requests via Authorization header
+3. Implement token refresh mechanisms for long-lived sessions

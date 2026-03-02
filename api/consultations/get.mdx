@@ -1,0 +1,149 @@
+---
+title: 'Get Consultation'
+api: 'GET /consultations/{id}'
+description: 'Retrieve a specific consultation by its UUID'
+---
+
+Retrieves detailed information about a specific consultation including patient, doctor, scheduling details, and observations.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the consultation to retrieve (e.g., "550e8400-e29b-41d4-a716-446655440000")
+</ParamField>
+
+## Response
+
+<ResponseField name="consultationId" type="string">
+  UUID of the consultation
+</ResponseField>
+
+<ResponseField name="dateTime" type="string">
+  Scheduled date and time of the consultation in ISO 8601 format
+</ResponseField>
+
+<ResponseField name="duracaoMinutos" type="integer">
+  Duration of the consultation in minutes (default: 60)
+</ResponseField>
+
+<ResponseField name="patient" type="object">
+  Complete patient information
+  
+  <Expandable title="Patient object">
+    <ResponseField name="cpf" type="string">
+      Patient's CPF
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Patient's full name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Patient's email address
+    </ResponseField>
+    <ResponseField name="dateOfBirth" type="string">
+      Patient's date of birth
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Patient's address
+    </ResponseField>
+    <ResponseField name="medicalHistory" type="string">
+      Patient's medical history
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="doctor" type="object">
+  Complete doctor information
+  
+  <Expandable title="Doctor object">
+    <ResponseField name="crm" type="string">
+      Doctor's CRM number
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Doctor's full name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Doctor's email address
+    </ResponseField>
+    <ResponseField name="specialty" type="string">
+      Doctor's medical specialty
+    </ResponseField>
+    <ResponseField name="telephone" type="string">
+      Doctor's phone number
+    </ResponseField>
+    <ResponseField name="consultationValue" type="number">
+      Doctor's consultation fee
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="isUrgent" type="boolean">
+  Whether this is an urgent consultation
+</ResponseField>
+
+<ResponseField name="observation" type="string">
+  Additional notes or observations for the consultation
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000'
+);
+
+const consultation = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000'
+)
+
+consultation = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+  "dateTime": "2024-03-15T14:30:00",
+  "duracaoMinutos": 60,
+  "patient": {
+    "cpf": "12345678901",
+    "name": "João Silva",
+    "email": "joao.silva@email.com",
+    "dateOfBirth": "1985-06-15",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "medicalHistory": "Hypertension, controlled with medication"
+  },
+  "doctor": {
+    "crm": "123456SP",
+    "name": "Dr. Maria Santos",
+    "email": "maria.santos@medagenda.com",
+    "specialty": "Cardiologia",
+    "telephone": "+5511987654321",
+    "consultationValue": 350.00
+  },
+  "isUrgent": false,
+  "observation": "Patient reports mild headaches for the past week"
+}
+```
+
+```json 404 - Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Consultation not found"
+}
+```
+
+</ResponseExample>

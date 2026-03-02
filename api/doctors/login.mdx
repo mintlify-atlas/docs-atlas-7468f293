@@ -1,0 +1,55 @@
+---
+title: 'Doctor Login'
+api: 'POST /doctor/login'
+---
+
+Authenticate a doctor using email and password.
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  Doctor's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Doctor's password.
+</ParamField>
+
+## Response
+
+Returns a success or error message string.
+
+## Example Request
+
+```bash
+curl -X POST http://localhost:8080/doctor/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "dr.silva@hospital.com",
+    "password": "securePassword123"
+  }'
+```
+
+## Example Response
+
+### Success (200 OK)
+
+```text
+Login successful!
+```
+
+### Error (401 Unauthorized)
+
+```text
+Invalid email or password.
+```
+
+## Error Responses
+
+<ResponseField name="400 Bad Request" type="error">
+  Missing email or password in request body.
+</ResponseField>
+
+<ResponseField name="401 Unauthorized" type="error">
+  Invalid email or password - authentication failed.
+</ResponseField>

@@ -1,0 +1,44 @@
+---
+title: 'Delete Doctor'
+api: 'DELETE /doctor/{crm}'
+---
+
+Delete a doctor from the system by CRM number.
+
+## Path Parameters
+
+<ParamField path="crm" type="string" required>
+  The CRM number of the doctor to delete.
+</ParamField>
+
+## Response
+
+Returns a success or error message string.
+
+## Example Request
+
+```bash
+curl -X DELETE http://localhost:8080/doctor/123456789
+```
+
+## Example Response
+
+### Success (200 OK)
+
+```text
+Doutor deletado com sucesso!
+```
+
+### Error (404 Not Found)
+
+Returns an empty response body with HTTP status 404.
+
+## Error Responses
+
+<ResponseField name="404 Not Found" type="error">
+  Doctor with the specified CRM number not found. No response body is returned.
+</ResponseField>
+
+<ResponseField name="200 OK" type="success">
+  Doctor successfully deleted. Returns message: "Doutor deletado com sucesso!"
+</ResponseField>

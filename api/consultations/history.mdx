@@ -1,0 +1,151 @@
+---
+title: 'Get Patient History'
+api: 'GET /consultations/patient-history/{cpf}'
+description: "Retrieve all consultations for a specific patient by their CPF"
+---
+
+Returns a complete consultation history for a patient identified by their CPF (Cadastro de Pessoas Físicas). This includes all past, present, and future consultations scheduled for the patient.
+
+## Path Parameters
+
+<ParamField path="cpf" type="string" required>
+  Patient's CPF number (11 digits, e.g., "12345678901")
+</ParamField>
+
+## Response
+
+Returns an array of consultation objects for the specified patient, ordered by the database.
+
+<ResponseField name="consultations" type="array">
+  Array of consultation objects for the patient
+  
+  <Expandable title="Consultation object">
+    <ResponseField name="consultationId" type="string">
+      UUID of the consultation
+    </ResponseField>
+    
+    <ResponseField name="dateTime" type="string">
+      Scheduled date and time in ISO 8601 format
+    </ResponseField>
+    
+    <ResponseField name="duracaoMinutos" type="integer">
+      Duration of the consultation in minutes
+    </ResponseField>
+    
+    <ResponseField name="patient" type="object">
+      Patient information including cpf, name, email, dateOfBirth, address, and medicalHistory
+    </ResponseField>
+    
+    <ResponseField name="doctor" type="object">
+      Doctor information including crm, name, email, specialty, telephone, and consultationValue
+    </ResponseField>
+    
+    <ResponseField name="isUrgent" type="boolean">
+      Whether this is an urgent consultation
+    </ResponseField>
+    
+    <ResponseField name="observation" type="string">
+      Additional notes or observations
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Info>
+  If the patient has no consultations, an empty array is returned with a 200 status code.
+</Info>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.medagenda.com/consultations/patient-history/12345678901
+```
+
+```javascript JavaScript
+const cpf = '12345678901';
+const response = await fetch(
+  `https://api.medagenda.com/consultations/patient-history/${cpf}`
+);
+
+const consultationHistory = await response.json();
+console.log(`Patient has ${consultationHistory.length} consultation(s)`);
+```
+
+```python Python
+import requests
+
+cpf = '12345678901'
+response = requests.get(
+    f'https://api.medagenda.com/consultations/patient-history/{cpf}'
+)
+
+consultation_history = response.json()
+print(f'Patient has {len(consultation_history)} consultation(s)')
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success with Results
+[
+  {
+    "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+    "dateTime": "2024-03-15T14:30:00",
+    "duracaoMinutos": 60,
+    "patient": {
+      "cpf": "12345678901",
+      "name": "João Silva",
+      "email": "joao.silva@email.com",
+      "dateOfBirth": "1985-06-15",
+      "address": "Rua das Flores, 123, São Paulo, SP",
+      "medicalHistory": "Hypertension, controlled with medication"
+    },
+    "doctor": {
+      "crm": "123456SP",
+      "name": "Dr. Maria Santos",
+      "email": "maria.santos@medagenda.com",
+      "specialty": "Cardiologia",
+      "telephone": "+5511987654321",
+      "consultationValue": 350.00
+    },
+    "isUrgent": false,
+    "observation": "Patient reports mild headaches for the past week"
+  },
+  {
+    "consultationId": "770g0622-g4bd-63f6-c938-668877662222",
+    "dateTime": "2024-02-10T09:00:00",
+    "duracaoMinutos": 60,
+    "patient": {
+      "cpf": "12345678901",
+      "name": "João Silva",
+      "email": "joao.silva@email.com",
+      "dateOfBirth": "1985-06-15",
+      "address": "Rua das Flores, 123, São Paulo, SP",
+      "medicalHistory": "Hypertension, controlled with medication"
+    },
+    "doctor": {
+      "crm": "654321RJ",
+      "name": "Dr. Carlos Mendes",
+      "email": "carlos.mendes@medagenda.com",
+      "specialty": "Clínico Geral",
+      "telephone": "+5521987654321",
+      "consultationValue": 280.00
+    },
+    "isUrgent": false,
+    "observation": "Annual checkup"
+  }
+]
+```
+
+```json 200 - No Consultations Found
+[]
+```
+
+</ResponseExample>
+
+## Use Cases
+
+- **Patient Portal** - Display consultation history to patients
+- **Doctor Review** - Allow doctors to review a patient's consultation history before an appointment
+- **Medical Records** - Generate reports of patient visits
+- **Billing** - Track all consultations for billing purposes

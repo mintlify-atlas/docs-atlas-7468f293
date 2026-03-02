@@ -1,0 +1,94 @@
+---
+title: 'Delete Consultation'
+api: 'DELETE /consultations/{id}'
+description: 'Cancel a consultation and delete associated records'
+---
+
+Cancels and permanently deletes a consultation from the system. This operation also cascades to remove associated diagnosis and payment records.
+
+<Warning>
+  This is a destructive operation that cannot be undone. The consultation and all related records (diagnosis, payment) will be permanently deleted.
+</Warning>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the consultation to cancel (e.g., "550e8400-e29b-41d4-a716-446655440000")
+</ParamField>
+
+## Cascading Deletions
+
+When a consultation is deleted, the following related records are also removed:
+
+1. **Diagnosis Records** - Any diagnosis associated with the consultation is deleted
+2. **Payment Records** - The payment record linked to the consultation is deleted
+3. **Consultation Record** - The consultation itself is deleted
+
+The deletions occur in this specific order to maintain referential integrity.
+
+## Response
+
+### Success Response
+
+Returns a text message confirming the cancellation.
+
+<ResponseField name="message" type="string">
+  Success message: "Consulta cancelada com sucesso."
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000
+```
+
+```javascript JavaScript
+const response = await fetch(
+  'https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000',
+  {
+    method: 'DELETE'
+  }
+);
+
+const message = await response.text();
+console.log(message); // "Consulta cancelada com sucesso."
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    'https://api.medagenda.com/consultations/550e8400-e29b-41d4-a716-446655440000'
+)
+
+print(response.text)  # "Consulta cancelada com sucesso."
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```text 200 - Success
+Consulta cancelada com sucesso.
+```
+
+```json 404 - Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Consultation not found"
+}
+```
+
+</ResponseExample>
+
+## Implementation Details
+
+The cancellation process follows these steps:
+
+1. **Existence Check** - Verifies the consultation exists in the database
+2. **Diagnosis Deletion** - Searches for and deletes any associated diagnosis record
+3. **Payment Deletion** - Searches for and deletes the associated payment record
+4. **Consultation Deletion** - Removes the consultation record itself
+
+If the consultation doesn't exist, the endpoint returns a 404 Not Found response without attempting any deletions.

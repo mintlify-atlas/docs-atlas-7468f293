@@ -1,0 +1,223 @@
+---
+title: Installation Overview
+description: Get started with Med Agenda installation and setup
+---
+
+## System Requirements
+
+Before installing Med Agenda, ensure your system meets the following requirements:
+
+- **Operating System**: Linux, macOS, or Windows
+- **Memory**: Minimum 2GB RAM (4GB recommended)
+- **Disk Space**: At least 500MB free space
+- **Network**: Internet connection for downloading dependencies
+
+## Prerequisites
+
+Med Agenda requires the following software to be installed:
+
+### Required
+
+<CardGroup cols={2}>
+  <Card title="Java 21" icon="mug-hot">
+    Amazon Corretto 21 or any JDK 21 distribution
+  </Card>
+  <Card title="PostgreSQL" icon="database">
+    PostgreSQL 12 or higher
+  </Card>
+</CardGroup>
+
+### Optional (for Docker deployment)
+
+<CardGroup cols={2}>
+  <Card title="Docker" icon="docker">
+    Docker 20.10 or higher
+  </Card>
+  <Card title="Docker Compose" icon="layer-group">
+    Docker Compose v2.0 or higher
+  </Card>
+</CardGroup>
+
+### Development Tools
+
+- **Maven 3.9+**: For building from source (included via Maven wrapper)
+- **Node.js 18+**: For frontend development
+
+## Installation Methods
+
+Med Agenda can be deployed using two methods:
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Recommended for production. Quick setup with containerization.
+  </Card>
+  <Card title="Manual Installation" icon="terminal">
+    For development or custom deployments.
+  </Card>
+</CardGroup>
+
+## Quick Installation Steps
+
+### Docker Installation (Recommended)
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/your-org/med-agenda.git
+    cd med-agenda/backend/gestaoConsultasMedicas
+    ```
+  </Step>
+  
+  <Step title="Configure environment variables">
+    Create a `.env` file with your database and API credentials:
+    ```bash
+    cp .env.example .env
+    # Edit .env with your configuration
+    ```
+    See [Environment Variables](/deployment/environment-variables) for details.
+  </Step>
+  
+  <Step title="Build and run with Docker Compose">
+    ```bash
+    docker-compose up -d
+    ```
+  </Step>
+  
+  <Step title="Verify installation">
+    ```bash
+    curl http://localhost:8080
+    ```
+    You should see "Hello World" response.
+  </Step>
+</Steps>
+
+### Manual Installation
+
+<Steps>
+  <Step title="Install Java 21">
+    <CodeGroup>
+    ```bash macOS (Homebrew)
+    brew install openjdk@21
+    ```
+    
+    ```bash Ubuntu/Debian
+    sudo apt update
+    sudo apt install openjdk-21-jdk
+    ```
+    
+    ```bash Windows (Chocolatey)
+    choco install openjdk21
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Install PostgreSQL">
+    <CodeGroup>
+    ```bash macOS (Homebrew)
+    brew install postgresql@15
+    brew services start postgresql@15
+    ```
+    
+    ```bash Ubuntu/Debian
+    sudo apt update
+    sudo apt install postgresql postgresql-contrib
+    sudo systemctl start postgresql
+    ```
+    
+    ```bash Windows (Chocolatey)
+    choco install postgresql
+    ```
+    </CodeGroup>
+    
+    Or use [Neon.tech](https://neon.tech) for managed PostgreSQL (recommended).
+  </Step>
+  
+  <Step title="Clone and build the project">
+    ```bash
+    git clone https://github.com/your-org/med-agenda.git
+    cd med-agenda/backend/gestaoConsultasMedicas
+    ./mvnw clean package -DskipTests
+    ```
+  </Step>
+  
+  <Step title="Configure the application">
+    Set up your environment variables or edit `application.properties`:
+    ```bash
+    export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/medagenda"
+    export SPRING_DATASOURCE_USERNAME="postgres"
+    export SPRING_DATASOURCE_PASSWORD="your_password"
+    ```
+  </Step>
+  
+  <Step title="Run the application">
+    ```bash
+    java -jar target/gestaoConsultasMedicas-0.0.1-SNAPSHOT.jar
+    ```
+  </Step>
+</Steps>
+
+## Verification
+
+After installation, verify that Med Agenda is running correctly:
+
+<CodeGroup>
+```bash Test API Endpoint
+curl http://localhost:8080
+# Expected: "Hello World"
+```
+
+```bash Check Health Status
+curl http://localhost:8080/actuator/health
+```
+
+```bash View Logs
+# Docker
+docker-compose logs -f api
+
+# Manual
+tail -f logs/spring.log
+```
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Learn about containerized deployment
+  </Card>
+  <Card title="Database Setup" icon="database" href="/deployment/database">
+    Configure PostgreSQL database
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/deployment/environment-variables">
+    Configure application settings
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 8080 already in use">
+    Change the server port by setting the `SERVER_PORT` environment variable:
+    ```bash
+    export SERVER_PORT=8081
+    ```
+    Or in Docker Compose, modify the `ports` mapping in `docker-compose.yml`.
+  </Accordion>
+  
+  <Accordion title="Database connection failed">
+    Verify your database is running and credentials are correct:
+    ```bash
+    # Test PostgreSQL connection
+    psql -h localhost -U postgres -d medagenda
+    ```
+    Check the [Database Setup](/deployment/database) guide for configuration help.
+  </Accordion>
+  
+  <Accordion title="Java version mismatch">
+    Ensure you're using Java 21:
+    ```bash
+    java -version
+    # Should show version 21.x.x
+    ```
+  </Accordion>
+</AccordionGroup>

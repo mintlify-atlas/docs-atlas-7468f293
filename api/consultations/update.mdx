@@ -1,0 +1,138 @@
+---
+title: 'Update Consultation'
+api: 'PUT /consultations/update'
+description: 'Update the date/time and observation of an existing consultation'
+---
+
+Updates an existing consultation's scheduling information and observations. This endpoint allows modifying the `dateTime` and `observation` fields. Patient and doctor assignments cannot be changed through this endpoint.
+
+## Request Body
+
+<ParamField body="consultationId" type="string" required>
+  UUID of the consultation to update (e.g., "550e8400-e29b-41d4-a716-446655440000")
+</ParamField>
+
+<ParamField body="dateTime" type="string" required>
+  New consultation date and time in ISO 8601 format (e.g., "2024-03-20T15:00:00")
+</ParamField>
+
+<ParamField body="observation" type="string">
+  Updated notes or observations for the consultation
+</ParamField>
+
+<Note>
+  The `patient`, `doctor`, `isUrgent`, and `duracaoMinutos` fields cannot be modified through this endpoint. Only `dateTime` and `observation` can be updated.
+</Note>
+
+## Response
+
+<ResponseField name="consultationId" type="string">
+  UUID of the updated consultation
+</ResponseField>
+
+<ResponseField name="dateTime" type="string">
+  Updated date and time of the consultation
+</ResponseField>
+
+<ResponseField name="duracaoMinutos" type="integer">
+  Duration of the consultation in minutes (unchanged)
+</ResponseField>
+
+<ResponseField name="patient" type="object">
+  Patient information (unchanged)
+</ResponseField>
+
+<ResponseField name="doctor" type="object">
+  Doctor information (unchanged)
+</ResponseField>
+
+<ResponseField name="isUrgent" type="boolean">
+  Urgent status (unchanged)
+</ResponseField>
+
+<ResponseField name="observation" type="string">
+  Updated observation text
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X PUT https://api.medagenda.com/consultations/update \
+  -H "Content-Type: application/json" \
+  -d '{
+    "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+    "dateTime": "2024-03-20T15:00:00",
+    "observation": "Rescheduled - Patient requested later time slot"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.medagenda.com/consultations/update', {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    consultationId: '550e8400-e29b-41d4-a716-446655440000',
+    dateTime: '2024-03-20T15:00:00',
+    observation: 'Rescheduled - Patient requested later time slot'
+  })
+});
+
+const updatedConsultation = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.put(
+    'https://api.medagenda.com/consultations/update',
+    json={
+        'consultationId': '550e8400-e29b-41d4-a716-446655440000',
+        'dateTime': '2024-03-20T15:00:00',
+        'observation': 'Rescheduled - Patient requested later time slot'
+    }
+)
+
+updated_consultation = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+  "dateTime": "2024-03-20T15:00:00",
+  "duracaoMinutos": 60,
+  "patient": {
+    "cpf": "12345678901",
+    "name": "João Silva",
+    "email": "joao.silva@email.com",
+    "dateOfBirth": "1985-06-15",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "medicalHistory": "Hypertension, controlled with medication"
+  },
+  "doctor": {
+    "crm": "123456SP",
+    "name": "Dr. Maria Santos",
+    "email": "maria.santos@medagenda.com",
+    "specialty": "Cardiologia",
+    "telephone": "+5511987654321",
+    "consultationValue": 350.00
+  },
+  "isUrgent": false,
+  "observation": "Rescheduled - Patient requested later time slot"
+}
+```
+
+```json 404 - Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Consultation not found"
+}
+```
+
+</ResponseExample>

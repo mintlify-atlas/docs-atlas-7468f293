@@ -1,0 +1,478 @@
+---
+title: Doctor Guide
+description: Complete guide for doctors using Med Agenda
+icon: user-doctor
+---
+
+This comprehensive guide covers all features available to doctors in Med Agenda, from registration to managing your schedule and creating patient diagnoses.
+
+## Getting Started
+
+### Doctor Registration Process
+
+Doctor accounts are created by clinic administrators, not through self-registration. Here's what you need to know:
+
+<Note>
+  Only clinic administrators can create doctor accounts. Contact your clinic administrator to set up your account.
+</Note>
+
+#### Information Required for Registration
+
+Your administrator will need the following information to create your account:
+
+<Steps>
+  <Step title="Personal Information">
+    - **Full Name**: Your complete legal name
+    - **CRM**: Your medical registration number (Conselho Regional de Medicina)
+    - **Email**: Professional email address for login and notifications
+  </Step>
+  
+  <Step title="Professional Details">
+    - **Specialty**: Your medical specialty (e.g., Cardiology, Pediatrics, Dermatology)
+    - **Telephone**: Contact number for patients and administrative purposes
+    - **Consultation Value**: Fee per consultation in Brazilian Reais (R$)
+  </Step>
+  
+  <Step title="Account Credentials">
+    - **Password**: Initial password for your account (you should change this after first login)
+  </Step>
+</Steps>
+
+<Warning>
+  Keep your CRM number and initial password secure. You'll need both to access your account.
+</Warning>
+
+### Logging Into Your Account
+
+Once your administrator creates your account:
+
+<Steps>
+  <Step title="Navigate to Doctor Login">
+    Access the login page at `/doctor/login`
+    
+    You'll see "Você está acessando como Médico" (You are accessing as Doctor).
+  </Step>
+  
+  <Step title="Enter Your Credentials">
+    Provide your login information:
+    
+    - **Email**: Your registered email address
+    - **Password**: The password set by your administrator
+    
+    <Tip>
+      Click the eye icon to view your password as you type, ensuring accuracy.
+    </Tip>
+  </Step>
+  
+  <Step title="Access Your Dashboard">
+    Click **"Login"** to access your doctor dashboard at `/doctor/dash`
+    
+    The system will:
+    - Store your email in local storage
+    - Retrieve and store your CRM number
+    - Redirect you to your personalized dashboard
+  </Step>
+</Steps>
+
+## Managing Your Profile
+
+### Viewing Your Information
+
+Your profile contains:
+
+- **CRM Number**: Your unique medical registration identifier
+- **Name**: Your full professional name
+- **Email**: Your contact and login email
+- **Specialty**: Your area of medical expertise
+- **Telephone**: Your contact number
+- **Consultation Value**: Your fee per appointment
+
+### Updating Your Profile and Specialties
+
+To update your profile information:
+
+<Info>
+  Profile updates must be made by your clinic administrator using the endpoint `PUT /doctor/{crm}`. Contact them with any changes to your information.
+</Info>
+
+**Information you can update:**
+
+<Tabs>
+  <Tab title="Professional Details">
+    - Medical specialty
+    - Consultation fees
+    - Contact telephone number
+    - Professional email address
+  </Tab>
+  
+  <Tab title="Account Security">
+    - Password (for login security)
+    - Email address (affects login credentials)
+  </Tab>
+</Tabs>
+
+<Note>
+  Your CRM number cannot be changed as it's your unique identifier in the system.
+</Note>
+
+## Managing Your Schedule
+
+### Viewing Scheduled Appointments
+
+Access your agenda to see all upcoming appointments:
+
+<Steps>
+  <Step title="Access Your Agenda">
+    Navigate to **"Minha Agenda"** (My Agenda) from your dashboard.
+    
+    This page displays all consultations scheduled with you, organized by date.
+  </Step>
+  
+  <Step title="Review Your Schedule">
+    Your agenda shows:
+    
+    - **Dates**: Grouped by day in Brazilian format (DD/MM/YYYY)
+    - **Times**: All appointment times for each day, sorted chronologically
+    - **Visual Organization**: Cards for each day with easy-to-read time listings
+    
+    <Info>
+      If you have no appointments, you'll see: "Nenhuma consulta agendada" (No appointments scheduled).
+    </Info>
+  </Step>
+  
+  <Step title="Plan Your Day">
+    Use your agenda to:
+    
+    - See how many patients you have each day
+    - Identify your busiest times
+    - Plan breaks between appointments
+    - Prepare for upcoming consultations
+  </Step>
+</Steps>
+
+### Understanding Your Appointment Display
+
+<CodeGroup>
+```text Example Schedule Display
+Minha Agenda
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 15/03/2026
+  • 09:00
+  • 10:30
+  • 14:00
+  • 16:00
+
+📅 16/03/2026
+  • 08:30
+  • 11:00
+```
+</CodeGroup>
+
+## Creating Diagnoses
+
+### Accessing the Diagnosis Interface
+
+After a consultation, you can create a formal diagnosis:
+
+<Steps>
+  <Step title="Navigate to Diagnosis Page">
+    Go to **"Registrar Diagnóstico"** (Register Diagnosis) from your dashboard.
+  </Step>
+  
+  <Step title="Select the Consultation">
+    Choose which appointment you're creating a diagnosis for:
+    
+    - The dropdown shows all your consultations
+    - Format: `Patient Name — DD/MM/YYYY HH:MM`
+    - Select the relevant consultation from the list
+    
+    <Note>
+      Only consultations assigned to your CRM will appear in the list.
+    </Note>
+  </Step>
+</Steps>
+
+### Writing a Complete Diagnosis
+
+A proper diagnosis in Med Agenda includes four key components:
+
+<Steps>
+  <Step title="Consultation Selection">
+    Select the specific consultation this diagnosis relates to.
+    
+    This links the diagnosis to:
+    - The patient
+    - The appointment date and time
+    - Your CRM as the attending physician
+  </Step>
+  
+  <Step title="Description">
+    Write a detailed description in the **"Descrição"** field:
+    
+    **Include:**
+    - Patient's chief complaint
+    - Physical examination findings
+    - Test results (if applicable)
+    - Clinical reasoning
+    - Treatment plan
+    - Follow-up recommendations
+    
+    <Tip>
+      Be thorough and clear. This documentation is important for patient care continuity and legal records.
+    </Tip>
+  </Step>
+  
+  <Step title="Diagnosis Date">
+    Select the **"Data do Diagnóstico"** (Diagnosis Date):
+    
+    - Usually the same as the consultation date
+    - Use the date picker to select
+    - Format: YYYY-MM-DD (handled automatically by the system)
+  </Step>
+  
+  <Step title="CID Code Selection">
+    Choose the appropriate **CID** (International Classification of Diseases) code:
+    
+    - Click the CID dropdown menu
+    - Browse or search for the relevant code
+    - Select the most specific code applicable
+    - The system loads CID codes from the official database
+    
+    <Warning>
+      If CID codes fail to load, you'll see an error message. Try refreshing the page or contact your administrator.
+    </Warning>
+  </Step>
+  
+  <Step title="Submit the Diagnosis">
+    Click **"Registrar Diagnóstico"** (Register Diagnosis).
+    
+    Upon success, you'll see: "Diagnóstico registrado com sucesso." (Diagnosis registered successfully.)
+    
+    The form will clear, allowing you to create another diagnosis if needed.
+  </Step>
+</Steps>
+
+### Diagnosis Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Accuracy" icon="bullseye">
+    - Use the most specific CID code available
+    - Double-check all information before submitting
+    - Review patient history when available
+    - Be precise in your descriptions
+  </Card>
+  
+  <Card title="Completeness" icon="list-check">
+    - Include all relevant findings
+    - Document treatment plans clearly
+    - Note any medications prescribed
+    - Specify follow-up requirements
+  </Card>
+  
+  <Card title="Clarity" icon="file-lines">
+    - Use clear, professional language
+    - Avoid ambiguous terminology
+    - Write legibly and thoroughly
+    - Think of other doctors reading this
+  </Card>
+  
+  <Card title="Timeliness" icon="clock">
+    - Create diagnoses promptly after consultations
+    - Don't delay important documentation
+    - Keep diagnosis dates accurate
+    - Maintain up-to-date patient records
+  </Card>
+</CardGroup>
+
+## Understanding the CID System
+
+The **CID** (Classificação Internacional de Doenças) is the International Classification of Diseases:
+
+<Tabs>
+  <Tab title="What is CID?">
+    The CID system classifies diseases, symptoms, and medical conditions using standardized codes.
+    
+    **Purpose:**
+    - Standardizes medical records
+    - Facilitates healthcare statistics
+    - Enables accurate billing and insurance claims
+    - Supports medical research and epidemiology
+  </Tab>
+  
+  <Tab title="Using CID Codes">
+    When selecting a CID code:
+    
+    1. **Identify the primary condition** you're diagnosing
+    2. **Search the dropdown** for relevant codes
+    3. **Select the most specific** code that applies
+    4. **Verify** you've chosen the correct code before submitting
+    
+    <Info>
+      The system loads CID codes dynamically from the official database. If codes don't load, check your internet connection.
+    </Info>
+  </Tab>
+  
+  <Tab title="Code Format">
+    CID codes typically follow patterns like:
+    
+    - `A00-A09`: Intestinal infectious diseases
+    - `I10-I15`: Hypertensive diseases
+    - `J00-J06`: Acute upper respiratory infections
+    - And many more categories
+  </Tab>
+</Tabs>
+
+## Managing Availability
+
+### How Appointments Are Scheduled
+
+In Med Agenda:
+
+1. **Patients select you** from the available doctor list when booking
+2. **They choose date and time** for their appointment
+3. **The system creates the consultation** linked to your CRM
+4. **You see the appointment** in your agenda automatically
+
+<Note>
+  Currently, the system doesn't have built-in availability blocking. Coordinate with your clinic administrator about scheduling policies and managing your calendar.
+</Note>
+
+### Managing Your Time
+
+<AccordionGroup>
+  <Accordion title="Viewing Your Schedule">
+    Check your agenda regularly to:
+    - Know when you're booked
+    - Prepare for patient visits
+    - Plan your day effectively
+    - Identify scheduling conflicts
+  </Accordion>
+  
+  <Accordion title="Handling Conflicts">
+    If you notice scheduling issues:
+    - Contact your clinic administrator immediately
+    - They can update or cancel conflicting appointments
+    - Communicate with affected patients
+    - Document any changes
+  </Accordion>
+  
+  <Accordion title="Setting Boundaries">
+    Work with your administrator to:
+    - Establish your working hours
+    - Define appointment duration standards
+    - Set maximum daily appointments
+    - Block time for emergencies or administrative work
+  </Accordion>
+</AccordionGroup>
+
+## Dashboard Overview
+
+Your doctor dashboard (`/doctor/dash`) provides quick access to:
+
+- **Agenda**: View all your scheduled appointments
+- **Diagnoses**: Access diagnosis creation and review
+- **Patient Information**: View details about your scheduled patients
+- **Statistics**: Track your consultation activity
+
+## Tips for Doctors
+
+<CardGroup cols={2}>
+  <Card title="Daily Routine" icon="calendar-day">
+    - Check your agenda first thing each day
+    - Review patient histories before appointments
+    - Create diagnoses promptly after consultations
+    - Keep your contact information current
+  </Card>
+  
+  <Card title="Documentation" icon="file-medical">
+    - Be thorough but concise
+    - Use standardized medical terminology
+    - Select accurate CID codes
+    - Proofread before submitting
+  </Card>
+  
+  <Card title="Communication" icon="comments">
+    - Update your administrator about schedule changes
+    - Inform patients of important findings
+    - Coordinate with clinic staff
+    - Report technical issues promptly
+  </Card>
+  
+  <Card title="Professional Development" icon="graduation-cap">
+    - Stay current with CID code updates
+    - Maintain accurate specialty information
+    - Keep consultation fees up to date
+    - Provide quality patient care documentation
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="I can't see my appointments">
+    **Check these items:**
+    
+    - Verify you're logged in with the correct email/CRM
+    - Ensure you have appointments scheduled in the system
+    - Check that your CRM is correctly registered
+    - Contact your administrator if the issue persists
+  </Accordion>
+  
+  <Accordion title="CID codes won't load">
+    **Possible solutions:**
+    
+    - Refresh the page
+    - Check your internet connection
+    - Clear your browser cache
+    - Try a different browser
+    - Contact technical support if it continues
+  </Accordion>
+  
+  <Accordion title="I don't see a consultation in the diagnosis dropdown">
+    **Verify:**
+    
+    - The consultation was assigned to your CRM
+    - The appointment actually exists in the system
+    - You're logged in with the correct account
+    - Ask your administrator to verify the consultation details
+  </Accordion>
+  
+  <Accordion title="My profile information is incorrect">
+    **Resolution:**
+    
+    - Contact your clinic administrator
+    - Provide the correct information
+    - They can update your profile using your CRM
+    - Verify the changes after they're made
+  </Accordion>
+</AccordionGroup>
+
+## API Endpoints Reference
+
+For technical reference, doctors interact with these key endpoints:
+
+| Endpoint | Purpose |
+|----------|----------|
+| `POST /doctor/login` | Authenticate and access your account |
+| `GET /doctor/search?email={email}` | Retrieve your CRM after login |
+| `GET /doctor/consultations/{crm}` | Get your appointment schedule |
+| `GET /consultations/all` | View all consultations (filtered to yours) |
+| `POST /diagnosis` | Submit a new diagnosis |
+
+<Info>
+  You don't need to interact with these endpoints directly - the interface handles all API calls automatically.
+</Info>
+
+## Getting Help
+
+For assistance with Med Agenda:
+
+- **Account Issues**: Contact your clinic administrator
+- **Technical Problems**: Report to IT support
+- **Feature Requests**: Discuss with administration
+- **Training**: Ask for additional guidance from your admin
+
+<Warning>
+  Never share your login credentials with anyone. Each doctor should have their own unique account.
+</Warning>

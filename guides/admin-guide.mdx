@@ -1,0 +1,763 @@
+---
+title: Administrator Guide
+description: Complete guide for clinic administrators using Med Agenda
+icon: user-shield
+---
+
+This comprehensive guide covers all administrative functions in Med Agenda, including account setup, managing doctors and patients, overseeing consultations, and maintaining system integrity.
+
+## Getting Started as an Administrator
+
+### Admin Account Setup
+
+To create your administrator account:
+
+<Steps>
+  <Step title="Navigate to Admin Registration">
+    Access the registration page at `/admin/register`
+    
+    You'll see the MedAgenda logo and "Registro de Administrador" (Administrator Registration).
+  </Step>
+  
+  <Step title="Fill in Your Information">
+    Complete the registration form with:
+    
+    - **Name**: Your full name
+    - **Email**: Your administrative email address (used for login)
+    - **Password**: Create a secure password
+    
+    <Warning>
+      Use a strong password with a mix of uppercase, lowercase, numbers, and special characters. As an administrator, you have access to sensitive patient and doctor information.
+    </Warning>
+  </Step>
+  
+  <Step title="Submit Registration">
+    Click **"Registrar Administrador"** (Register Administrator) to create your account.
+    
+    Upon success, you'll be redirected to `/admin/login`.
+  </Step>
+  
+  <Step title="Login to Your Account">
+    At the login page:
+    
+    - Enter your registered email
+    - Enter your password
+    - Optionally check "Lembrar-me" (Remember Me)
+    - Click **"Login"** to access your admin dashboard at `/admin/dash`
+  </Step>
+</Steps>
+
+<Note>
+  Unlike doctors and patients, administrators can self-register. However, in production environments, you may want to restrict this to authorized personnel only.
+</Note>
+
+## Managing Doctors
+
+As an administrator, you have full control over doctor accounts in the system.
+
+### Adding a New Doctor
+
+<Steps>
+  <Step title="Access Doctor Management">
+    Navigate to **"Gerenciamento de Médicos"** (Doctor Management) from your admin dashboard.
+  </Step>
+  
+  <Step title="Complete the Doctor Registration Form">
+    Under **"Cadastrar Novo Médico"** (Register New Doctor), fill in all required fields:
+    
+    **Personal Information:**
+    - **Name**: Doctor's full legal name
+    - **CRM**: Medical registration number (unique identifier)
+    - **Email**: Professional email for login
+    - **Password**: Initial password (doctor should change after first login)
+    
+    **Professional Details:**
+    - **Specialty**: Select from the dropdown menu
+    - **Telephone**: Contact number
+    - **Consultation Value**: Fee in Brazilian Reais (R$)
+  </Step>
+  
+  <Step title="Select Medical Specialty">
+    Choose from available specialties such as:
+    
+    - Cardiology (Cardiologia)
+    - Dermatology (Dermatologia)
+    - Pediatrics (Pediatria)
+    - Orthopedics (Ortopedia)
+    - General Practice (Clínico Geral)
+    - And many more...
+    
+    <Info>
+      Specialties are loaded from `/doctor/specialties.json`. Contact your technical team to add new specialties.
+    </Info>
+  </Step>
+  
+  <Step title="Submit Doctor Registration">
+    Click **"Cadastrar Médico"** (Register Doctor).
+    
+    You'll see a confirmation message: "Médico cadastrado com sucesso!" (Doctor registered successfully!)
+  </Step>
+</Steps>
+
+### Searching for Doctors
+
+To find and verify doctor information:
+
+<Tabs>
+  <Tab title="Search by CRM">
+    <Steps>
+      <Step title="Enter CRM Number">
+        In the **"Buscar Médico por CRM"** (Search Doctor by CRM) section:
+        
+        - Type the doctor's CRM number
+        - Click **"Buscar"** (Search)
+      </Step>
+      
+      <Step title="View Doctor Details">
+        The system displays:
+        
+        - CRM number
+        - Full name
+        - Email address
+        - Specialty
+        - Telephone
+        - Consultation value
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="Search by Other Criteria">
+    You can also search doctors using the API endpoints:
+    
+    - **By Name**: `GET /doctor/search?name={name}`
+    - **By Specialty**: `GET /doctor/search?specialty={specialty}`
+    - **By Email**: `GET /doctor/search?email={email}`
+    - **List All**: `GET /doctor`
+  </Tab>
+</Tabs>
+
+### Updating Doctor Information
+
+To modify a doctor's profile:
+
+<Steps>
+  <Step title="Identify the Doctor">
+    First, search for the doctor by CRM to verify their current information.
+  </Step>
+  
+  <Step title="Update via API">
+    Use the endpoint: `PUT /doctor/{crm}`
+    
+    You can update:
+    - Name
+    - Email
+    - Password
+    - Specialty
+    - Telephone
+    - Consultation value
+    
+    <Note>
+      The CRM number cannot be changed as it's the unique identifier.
+    </Note>
+  </Step>
+  
+  <Step title="Verify Changes">
+    Search for the doctor again to confirm the updates were applied correctly.
+  </Step>
+</Steps>
+
+### Removing Doctors
+
+To remove a doctor from the system:
+
+<Warning>
+  Deleting a doctor may affect historical consultation records. Ensure you have proper backups and understand the implications before proceeding.
+</Warning>
+
+<Steps>
+  <Step title="Verify Doctor CRM">
+    Confirm you have the correct CRM number for the doctor you want to remove.
+  </Step>
+  
+  <Step title="Delete Doctor">
+    Use the endpoint: `DELETE /doctor/{crm}`
+    
+    This permanently removes the doctor from the system.
+  </Step>
+  
+  <Step title="Confirm Deletion">
+    Verify the doctor no longer appears in searches or doctor lists.
+  </Step>
+</Steps>
+
+## Managing Patients
+
+Administrators can create, view, update, and manage patient accounts.
+
+### Registering a New Patient
+
+<Steps>
+  <Step title="Access Patient Management">
+    Navigate to **"Gerenciamento de Pacientes"** (Patient Management) from your admin dashboard.
+  </Step>
+  
+  <Step title="Fill Out Patient Form">
+    Under **"Cadastrar Novo Paciente"** (Register New Patient), enter:
+    
+    **Required Fields:**
+    - **Name**: Patient's full name
+    - **CPF**: Patient's CPF number (numbers only)
+    - **Date of Birth**: Select from date picker
+    - **Email**: Patient's email address
+    - **Password**: Initial password for patient login
+    
+    **Optional Fields:**
+    - **Address**: Residential address
+    - **Medical History**: Existing conditions, allergies, medications
+    
+    <Tip>
+      The CPF field automatically removes any formatting characters. Just type the numbers.
+    </Tip>
+  </Step>
+  
+  <Step title="Submit Registration">
+    Click **"Cadastrar Paciente"** (Register Patient).
+    
+    Success message: "Paciente cadastrado com sucesso!" (Patient registered successfully!)
+  </Step>
+</Steps>
+
+### Searching for Patients
+
+To find patient information:
+
+<Steps>
+  <Step title="Search by CPF">
+    In the **"Buscar Paciente por CPF"** section:
+    
+    - Enter the patient's CPF number
+    - Click **"Buscar"** (Search)
+  </Step>
+  
+  <Step title="Review Patient Details">
+    The system displays:
+    
+    - CPF
+    - Full name
+    - Email
+    - Date of birth
+    - Address
+    - Medical history
+  </Step>
+</Steps>
+
+<Tabs>
+  <Tab title="Individual Search">
+    Use the search form to find one patient at a time by CPF.
+  </Tab>
+  
+  <Tab title="List All Patients">
+    Use the API endpoint `GET /patients/list` to retrieve all patients in the system.
+  </Tab>
+</Tabs>
+
+### Updating Patient Information
+
+To modify patient records:
+
+<Steps>
+  <Step title="Locate the Patient">
+    Search for the patient by CPF to confirm their current information.
+  </Step>
+  
+  <Step title="Update Patient Data">
+    Use the endpoint: `PUT /patients/update/{cpf}`
+    
+    You can update:
+    - Name
+    - Email
+    - Password
+    - Date of birth
+    - Address
+    - Medical history
+    
+    <Warning>
+      The CPF cannot be changed as it's the unique identifier for patients.
+    </Warning>
+  </Step>
+  
+  <Step title="Verify Changes">
+    Search for the patient again to ensure updates were saved correctly.
+  </Step>
+</Steps>
+
+### Removing Patients
+
+To delete a patient account:
+
+<Warning>
+  Deleting a patient will affect their consultation history and medical records. Exercise extreme caution and ensure proper data retention policies are followed.
+</Warning>
+
+<Steps>
+  <Step title="Confirm Patient CPF">
+    Verify you have the correct CPF for the patient to be removed.
+  </Step>
+  
+  <Step title="Delete Patient">
+    Use the endpoint: `DELETE /patients/delete/{cpf}`
+  </Step>
+  
+  <Step title="Verify Deletion">
+    Confirm the patient no longer appears in system searches.
+  </Step>
+</Steps>
+
+## Managing Consultations
+
+As an administrator, you have full oversight of all consultations in the system.
+
+### Creating Consultations
+
+Administrators can schedule appointments on behalf of patients:
+
+<Steps>
+  <Step title="Access Consultation Management">
+    Navigate to **"Gerenciamento de Consultas"** (Consultation Management).
+  </Step>
+  
+  <Step title="Fill Consultation Details">
+    Under **"Agendar Nova Consulta"** (Schedule New Consultation):
+    
+    - **Date and Time**: Select using the datetime picker
+    - **Patient CPF**: Enter the patient's CPF
+    - **Doctor CRM**: Enter the doctor's CRM
+    - **Urgent**: Check if this is an urgent consultation
+    - **Observations**: Add any relevant notes
+  </Step>
+  
+  <Step title="Submit Consultation">
+    Click **"Agendar Consulta"** (Schedule Consultation).
+    
+    The system will:
+    - Create the consultation record
+    - Send email notification to the patient
+    - Add appointment to doctor's agenda
+    
+    <Info>
+      Email notifications are sent automatically when consultations are created.
+    </Info>
+  </Step>
+</Steps>
+
+### Viewing All Consultations
+
+To see all consultations in the system:
+
+<Tabs>
+  <Tab title="List All Consultations">
+    Use the endpoint: `GET /consultations/all`
+    
+    This returns every consultation with:
+    - Consultation ID
+    - Date and time
+    - Patient CPF
+    - Doctor CRM
+    - Urgent status
+    - Observations
+  </Tab>
+  
+  <Tab title="Search Specific Consultation">
+    To find a specific appointment:
+    
+    1. Get the consultation ID
+    2. Use `GET /consultations/{id}`
+    3. View complete details
+  </Tab>
+  
+  <Tab title="Patient History">
+    View all consultations for a specific patient:
+    
+    Use: `GET /consultations/patient-history/{cpf}`
+    
+    Shows all past and upcoming appointments for that patient.
+  </Tab>
+</Tabs>
+
+### Searching for Consultations
+
+<Steps>
+  <Step title="Enter Consultation ID">
+    In the **"Buscar Consulta por ID"** (Search Consultation by ID) section:
+    
+    - Type the consultation ID
+    - Click **"Buscar"** (Search)
+  </Step>
+  
+  <Step title="Review Consultation Details">
+    The system displays:
+    
+    - Consultation ID
+    - Date and time (formatted for pt-BR locale)
+    - Patient CPF
+    - Doctor CRM
+    - Urgent status (Yes/No)
+    - Observations
+  </Step>
+</Steps>
+
+### Updating Consultations
+
+To modify an existing consultation:
+
+<Steps>
+  <Step title="Get Consultation ID">
+    First, search for the consultation to get its ID.
+  </Step>
+  
+  <Step title="Update Consultation">
+    Use the endpoint: `PUT /consultations/update`
+    
+    You can change:
+    - Date and time
+    - Doctor assignment
+    - Urgent status
+    - Observations
+  </Step>
+  
+  <Step title="Notify Affected Parties">
+    If you change the date/time or doctor:
+    - Inform the patient
+    - Notify the doctor(s) involved
+    - Update any related records
+  </Step>
+</Steps>
+
+### Canceling Consultations
+
+To cancel an appointment:
+
+<Steps>
+  <Step title="Identify Consultation">
+    Obtain the consultation ID for the appointment to cancel.
+  </Step>
+  
+  <Step title="Delete Consultation">
+    Use the endpoint: `DELETE /consultations/{id}`
+    
+    This removes the consultation from the system.
+  </Step>
+  
+  <Step title="Communicate Cancellation">
+    - Notify the patient
+    - Inform the doctor
+    - Offer to reschedule if appropriate
+  </Step>
+</Steps>
+
+## System Oversight and Administration
+
+### Dashboard Overview
+
+Your admin dashboard (`/admin/dash`) provides:
+
+- Quick access to all management functions
+- System statistics and metrics
+- Navigation to doctors, patients, and consultations
+- Administrative tools and settings
+
+### Monitoring System Activity
+
+<CardGroup cols={2}>
+  <Card title="Doctor Activity" icon="user-doctor">
+    Monitor:
+    - Number of doctors in system
+    - Specialties available
+    - Doctor schedules and availability
+    - Consultation completion rates
+  </Card>
+  
+  <Card title="Patient Activity" icon="user">
+    Track:
+    - Total registered patients
+    - Appointment scheduling patterns
+    - Patient history utilization
+    - Email notification delivery
+  </Card>
+  
+  <Card title="Consultations" icon="calendar-check">
+    Oversee:
+    - Total consultations scheduled
+    - Urgent vs. routine appointments
+    - Cancellation rates
+    - Appointment distribution by doctor
+  </Card>
+  
+  <Card title="System Health" icon="heart-pulse">
+    Ensure:
+    - Email notifications are working
+    - Database integrity
+    - User account security
+    - API endpoint availability
+  </Card>
+</CardGroup>
+
+### Data Management Best Practices
+
+<AccordionGroup>
+  <Accordion title="Regular Backups">
+    Ensure your technical team:
+    - Backs up the database regularly
+    - Tests restoration procedures
+    - Stores backups securely
+    - Maintains backup retention policies
+  </Accordion>
+  
+  <Accordion title="Data Privacy">
+    Protect sensitive information:
+    - Follow LGPD (Lei Geral de Proteção de Dados) guidelines
+    - Limit access to patient records
+    - Use secure passwords
+    - Log administrative actions
+    - Never share credentials
+  </Accordion>
+  
+  <Accordion title="User Management">
+    Maintain clean user records:
+    - Remove duplicate accounts promptly
+    - Update information when notified
+    - Verify new doctor credentials
+    - Monitor for suspicious activity
+  </Accordion>
+  
+  <Accordion title="Consultation Integrity">
+    Keep appointments organized:
+    - Avoid scheduling conflicts
+    - Verify patient and doctor information
+    - Document any changes
+    - Maintain accurate historical records
+  </Accordion>
+</AccordionGroup>
+
+## Administrative Workflows
+
+### Onboarding a New Doctor
+
+<Steps>
+  <Step title="Gather Information">
+    Collect:
+    - Full name and CRM
+    - Email and phone
+    - Specialty
+    - Consultation fees
+  </Step>
+  
+  <Step title="Create Account">
+    Register the doctor in the system with all details.
+  </Step>
+  
+  <Step title="Provide Credentials">
+    Share login credentials securely:
+    - Email address (username)
+    - Initial password
+    - Login URL: `/doctor/login`
+  </Step>
+  
+  <Step title="Verify Setup">
+    Confirm:
+    - Doctor can log in successfully
+    - Profile information is correct
+    - They appear in search results
+    - Patients can select them for appointments
+  </Step>
+</Steps>
+
+### Handling Patient Requests
+
+<Steps>
+  <Step title="Registration Assistance">
+    When patients need help registering:
+    - Create their account as an admin
+    - Verify all information is accurate
+    - Provide login credentials securely
+    - Guide them through first login
+  </Step>
+  
+  <Step title="Account Issues">
+    For login or access problems:
+    - Verify account exists (search by CPF)
+    - Reset password if needed
+    - Update email if changed
+    - Test login after changes
+  </Step>
+  
+  <Step title="Scheduling Support">
+    When patients need appointment help:
+    - Create consultation on their behalf
+    - Verify doctor availability
+    - Confirm email notification sent
+    - Provide consultation ID for reference
+  </Step>
+</Steps>
+
+### Managing Conflicts
+
+<Tabs>
+  <Tab title="Double Booking">
+    If a doctor is double-booked:
+    
+    1. Identify the conflicting consultations
+    2. Contact both patients
+    3. Reschedule one appointment
+    4. Update the consultation record
+    5. Send new confirmation emails
+  </Tab>
+  
+  <Tab title="Doctor Unavailability">
+    When a doctor becomes unavailable:
+    
+    1. List all their upcoming consultations
+    2. Contact affected patients
+    3. Offer alternative doctors or times
+    4. Update or cancel consultations
+    5. Document the changes
+  </Tab>
+  
+  <Tab title="Patient Cancellations">
+    When patients cancel:
+    
+    1. Get the consultation ID
+    2. Delete the consultation
+    3. Notify the doctor
+    4. Update any related records
+    5. Offer to reschedule if appropriate
+  </Tab>
+</Tabs>
+
+## API Endpoints Reference
+
+Key endpoints for administrators:
+
+### Admin Endpoints
+| Endpoint | Method | Purpose |
+|----------|--------|----------|
+| `/admin/create` | POST | Create admin account |
+| `/admin/login` | POST | Admin authentication |
+| `/admin/{id}` | GET | View admin details |
+| `/admin/{id}` | DELETE | Remove admin |
+
+### Doctor Management
+| Endpoint | Method | Purpose |
+|----------|--------|----------|
+| `/doctor/create` | POST | Register new doctor |
+| `/doctor/{crm}` | PUT | Update doctor info |
+| `/doctor/{crm}` | DELETE | Remove doctor |
+| `/doctor` | GET | List all doctors |
+| `/doctor/search` | GET | Search by CRM/name/specialty/email |
+
+### Patient Management
+| Endpoint | Method | Purpose |
+|----------|--------|----------|
+| `/patients/create` | POST | Register new patient |
+| `/patients/{cpf}` | GET | View patient details |
+| `/patients/list` | GET | List all patients |
+| `/patients/update/{cpf}` | PUT | Update patient info |
+| `/patients/delete/{cpf}` | DELETE | Remove patient |
+
+### Consultation Management
+| Endpoint | Method | Purpose |
+|----------|--------|----------|
+| `/consultations/create` | POST | Schedule consultation |
+| `/consultations/{id}` | GET | View consultation |
+| `/consultations/all` | GET | List all consultations |
+| `/consultations/update` | PUT | Modify consultation |
+| `/consultations/{id}` | DELETE | Cancel consultation |
+| `/consultations/patient-history/{cpf}` | GET | Patient's consultations |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Email notifications aren't being sent">
+    **Check:**
+    - Email server configuration
+    - Patient email addresses are correct
+    - Spam filters aren't blocking messages
+    - Consultation creation is successful
+    - Network connectivity
+  </Accordion>
+  
+  <Accordion title="Cannot create doctor with specific specialty">
+    **Solution:**
+    - Verify specialty exists in `/doctor/specialties.json`
+    - Check spelling matches exactly
+    - Contact technical team to add new specialties
+    - Try selecting from dropdown instead of typing
+  </Accordion>
+  
+  <Accordion title="Patient can't log in after registration">
+    **Verify:**
+    - Account was created successfully
+    - Email address is correct
+    - Password meets requirements
+    - Patient is using `/patient/login` (not admin or doctor login)
+    - Try resetting the password
+  </Accordion>
+  
+  <Accordion title="Consultation doesn't appear in doctor's agenda">
+    **Check:**
+    - CRM number is correct
+    - Consultation was created successfully
+    - Doctor is logged in with correct account
+    - Refresh the doctor's agenda page
+    - Verify consultation date is in the future
+  </Accordion>
+</AccordionGroup>
+
+## Security Best Practices
+
+<Warning>
+  As an administrator, you have access to sensitive medical and personal information. Follow these security guidelines:
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="Password Security" icon="lock">
+    - Use strong, unique passwords
+    - Change passwords regularly
+    - Never share admin credentials
+    - Use password managers
+  </Card>
+  
+  <Card title="Access Control" icon="shield-halved">
+    - Log out when leaving workstation
+    - Use private browsing on shared computers
+    - Limit admin account creation
+    - Monitor for unauthorized access
+  </Card>
+  
+  <Card title="Data Protection" icon="database">
+    - Follow LGPD compliance
+    - Only access necessary records
+    - Don't share patient information
+    - Use secure connections (HTTPS)
+  </Card>
+  
+  <Card title="Audit Trail" icon="list">
+    - Document significant changes
+    - Keep records of account modifications
+    - Note why data was deleted
+    - Maintain communication logs
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+For administrator support:
+
+- **Technical Issues**: Contact your IT department or system developers
+- **Feature Requests**: Document needs and submit to development team
+- **Training**: Request additional training materials or sessions
+- **Emergency Support**: Establish emergency contact procedures
+
+<Info>
+  Keep contact information for technical support readily available for quick issue resolution.
+</Info>

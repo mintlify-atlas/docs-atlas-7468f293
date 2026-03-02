@@ -1,0 +1,453 @@
+---
+title: Docker Deployment
+description: Deploy Med Agenda using Docker and Docker Compose
+---
+
+## Overview
+
+Med Agenda provides a multi-stage Dockerfile that creates an optimized production image. The Docker setup uses Amazon Corretto 21 and follows best practices for security and performance.
+
+## Dockerfile Architecture
+
+The Dockerfile uses a **multi-stage build** approach:
+
+### Build Stage
+
+The build stage uses Maven to compile the application:
+
+```dockerfile
+# Build stage with Maven and JDK 21
+FROM maven:3.9.9-amazoncorretto-21 AS build
+WORKDIR /workspace
+
+# Cache dependencies
+COPY pom.xml .
+RUN mvn -B -q -DskipTests dependency:go-offline
+
+# Copy source code
+COPY src ./src
+
+# Copy PDF resources
+COPY pdf ./src/main/resources/pdf
+
+# Build the JAR
+RUN mvn -B -q -DskipTests clean package
+```
+
+<Note>
+The build stage downloads dependencies first (with caching) before copying source code. This optimizes Docker layer caching and speeds up rebuilds.
+</Note>
+
+### Runtime Stage
+
+The runtime stage creates a minimal production image:
+
+```dockerfile
+# Runtime stage with minimal Alpine-based JRE
+FROM amazoncorretto:21-alpine
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup -S app && adduser -S app -G app
+
+# Copy JAR from build stage
+COPY --from=build /workspace/target/*.jar /app/app.jar
+
+USER app
+
+# Expose default port
+EXPOSE 8080
+
+# Configure JVM options and server port
+ENV SERVER_PORT=8080 \
+    JAVA_OPTS=""
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+```
+
+<Warning>
+The application runs as a non-root user (`app`) for enhanced security. Never override this to run as root in production.
+</Warning>
+
+## Building the Docker Image
+
+### Basic Build
+
+Build the image from the project root:
+
+<CodeGroup>
+```bash Build with default tag
+cd backend/gestaoConsultasMedicas
+docker build -t med-agenda:latest .
+```
+
+```bash Build with version tag
+docker build -t med-agenda:1.0.0 .
+```
+
+```bash Build with custom name
+docker build -t myorg/med-agenda:production .
+```
+</CodeGroup>
+
+### Build Arguments
+
+You can customize the build process:
+
+```bash
+# Skip tests during build
+docker build --build-arg SKIP_TESTS=true -t med-agenda:latest .
+
+# Use build cache
+docker build --cache-from med-agenda:latest -t med-agenda:latest .
+```
+
+## Running with Docker
+
+### Basic Run
+
+Run the container with environment variables:
+
+```bash
+docker run -d \
+  --name med-agenda \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL="jdbc:postgresql://host.docker.internal:5432/medagenda" \
+  -e SPRING_DATASOURCE_USERNAME="postgres" \
+  -e SPRING_DATASOURCE_PASSWORD="your_password" \
+  -e ABACATE-KEY="your_payment_api_key" \
+  med-agenda:latest
+```
+
+### Advanced Configuration
+
+<CodeGroup>
+```bash Custom Port
+docker run -d \
+  --name med-agenda \
+  -p 9090:9090 \
+  -e SERVER_PORT=9090 \
+  -e SPRING_DATASOURCE_URL="..." \
+  med-agenda:latest
+```
+
+```bash JVM Options
+docker run -d \
+  --name med-agenda \
+  -p 8080:8080 \
+  -e JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC" \
+  -e SPRING_DATASOURCE_URL="..." \
+  med-agenda:latest
+```
+
+```bash Environment File
+# Create .env file with all variables
+docker run -d \
+  --name med-agenda \
+  -p 8080:8080 \
+  --env-file .env \
+  med-agenda:latest
+```
+</CodeGroup>
+
+## Docker Compose Setup
+
+The recommended way to run Med Agenda is with Docker Compose:
+
+### docker-compose.yml
+
+```yaml
+version: "3.8"
+
+services:
+  api:
+    build: .
+    image: med-agenda:latest
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+```
+
+### Complete Setup with Database
+
+For a complete local setup including PostgreSQL:
+
+```yaml docker-compose.yml
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: medagenda
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    image: med-agenda:latest
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/medagenda
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JPA_DDL_AUTO: update
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+```
+
+### Running Docker Compose
+
+<Steps>
+  <Step title="Create environment file">
+    ```bash
+    cp .env.example .env
+    # Edit .env with your configuration
+    ```
+  </Step>
+  
+  <Step title="Start services">
+    ```bash
+    docker-compose up -d
+    ```
+  </Step>
+  
+  <Step title="View logs">
+    ```bash
+    docker-compose logs -f api
+    ```
+  </Step>
+  
+  <Step title="Stop services">
+    ```bash
+    docker-compose down
+    ```
+  </Step>
+</Steps>
+
+## Container Management
+
+### Common Commands
+
+<CodeGroup>
+```bash View Logs
+# All logs
+docker-compose logs
+
+# Follow logs
+docker-compose logs -f api
+
+# Last 100 lines
+docker-compose logs --tail=100 api
+```
+
+```bash Restart Services
+# Restart all
+docker-compose restart
+
+# Restart API only
+docker-compose restart api
+```
+
+```bash Execute Commands
+# Shell access
+docker-compose exec api sh
+
+# Check Java version
+docker-compose exec api java -version
+
+# View application properties
+docker-compose exec api cat /app/application.properties
+```
+
+```bash Health Check
+# Check if container is running
+docker-compose ps
+
+# Check API health
+curl http://localhost:8080
+```
+</CodeGroup>
+
+### Updating the Application
+
+<Steps>
+  <Step title="Pull latest code">
+    ```bash
+    git pull origin main
+    ```
+  </Step>
+  
+  <Step title="Rebuild image">
+    ```bash
+    docker-compose build --no-cache api
+    ```
+  </Step>
+  
+  <Step title="Restart services">
+    ```bash
+    docker-compose up -d
+    ```
+  </Step>
+</Steps>
+
+## Production Considerations
+
+### Resource Limits
+
+Set memory and CPU limits for production:
+
+```yaml docker-compose.yml
+services:
+  api:
+    build: .
+    image: med-agenda:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    # ... rest of configuration
+```
+
+### Health Checks
+
+Add health checks to ensure container availability:
+
+```yaml
+services:
+  api:
+    build: .
+    image: med-agenda:latest
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # ... rest of configuration
+```
+
+### Logging Configuration
+
+Configure logging for production:
+
+```yaml
+services:
+  api:
+    build: .
+    image: med-agenda:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # ... rest of configuration
+```
+
+### Security Best Practices
+
+<Warning>
+Always follow these security practices in production:
+</Warning>
+
+- Never commit `.env` files with real credentials
+- Use Docker secrets or external secret management
+- Run containers with read-only root filesystem when possible
+- Limit container capabilities
+- Use private registries for images
+- Regularly update base images for security patches
+
+```yaml
+services:
+  api:
+    build: .
+    image: med-agenda:latest
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    # ... rest of configuration
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Container exits immediately">
+    Check logs for errors:
+    ```bash
+    docker-compose logs api
+    ```
+    
+    Common causes:
+    - Missing required environment variables
+    - Database connection failure
+    - Port already in use
+  </Accordion>
+  
+  <Accordion title="Cannot connect to database">
+    If using Docker Compose with local database:
+    ```bash
+    # Use service name, not localhost
+    SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/medagenda
+    ```
+    
+    If connecting to external database:
+    ```bash
+    # Use host.docker.internal on Mac/Windows
+    SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/medagenda
+    ```
+  </Accordion>
+  
+  <Accordion title="Build fails with dependency errors">
+    Clear Maven cache and rebuild:
+    ```bash
+    docker-compose build --no-cache api
+    ```
+  </Accordion>
+  
+  <Accordion title="Out of memory errors">
+    Increase JVM heap size:
+    ```yaml
+    environment:
+      JAVA_OPTS: "-Xms1g -Xmx2g"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Setup" icon="database" href="/deployment/database">
+    Configure PostgreSQL for production
+  </Card>
+  <Card title="Environment Variables" icon="gear" href="/deployment/environment-variables">
+    Complete environment configuration
+  </Card>
+</CardGroup>

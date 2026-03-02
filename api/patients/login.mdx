@@ -1,0 +1,61 @@
+---
+title: 'Patient Login'
+api: 'POST /patients/login'
+---
+
+Authenticates a patient using their email and password.
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  Patient's registered email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Patient's account password.
+</ParamField>
+
+## Response
+
+Returns a text message indicating the login status.
+
+## Example Request
+
+```bash cURL
+curl -X POST http://localhost:8080/patients/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "maria.silva@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+## Example Response
+
+```text 200 OK
+Login successful!
+```
+
+## Error Responses
+
+<ResponseExample>
+```text 401 Unauthorized
+Invalid email or password.
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- Both email and password must match an existing patient account
+- Authentication is case-sensitive for the password
+- This endpoint does not create a session or return a token in the current implementation
+- Returns 401 status code if credentials are invalid

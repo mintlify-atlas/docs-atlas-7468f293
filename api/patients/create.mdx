@@ -1,0 +1,132 @@
+---
+title: 'Create Patient'
+api: 'POST /patients/create'
+---
+
+Creates a new patient account in the system.
+
+## Request Body
+
+<ParamField body="cpf" type="string" required>
+  Patient's CPF (Brazilian tax ID). Must be unique and exactly 11 characters long.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Patient's full name.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Patient's email address. Must be unique in the system.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Patient's account password.
+</ParamField>
+
+<ParamField body="dateOfBirth" type="string" required>
+  Patient's date of birth in ISO 8601 format (YYYY-MM-DD).
+</ParamField>
+
+<ParamField body="address" type="string">
+  Patient's address (maximum 255 characters).
+</ParamField>
+
+<ParamField body="medicalHistory" type="string">
+  Patient's medical history notes.
+</ParamField>
+
+## Response
+
+<ResponseField name="cpf" type="string">
+  The patient's CPF.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The patient's full name.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  The patient's email address.
+</ResponseField>
+
+<ResponseField name="dateOfBirth" type="string">
+  The patient's date of birth in ISO 8601 format.
+</ResponseField>
+
+<ResponseField name="address" type="string">
+  The patient's address.
+</ResponseField>
+
+<ResponseField name="medicalHistory" type="string">
+  The patient's medical history.
+</ResponseField>
+
+<Note>
+  The `password` field is not included in the response for security reasons.
+</Note>
+
+## Example Request
+
+```bash cURL
+curl -X POST http://localhost:8080/patients/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cpf": "12345678901",
+    "name": "Maria Silva",
+    "email": "maria.silva@example.com",
+    "password": "securePassword123",
+    "dateOfBirth": "1990-05-15",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "medicalHistory": "No known allergies. Previous surgery in 2015."
+  }'
+```
+
+## Example Response
+
+```json 200 OK
+{
+  "cpf": "12345678901",
+  "name": "Maria Silva",
+  "email": "maria.silva@example.com",
+  "dateOfBirth": "1990-05-15",
+  "address": "Rua das Flores, 123, São Paulo, SP",
+  "medicalHistory": "No known allergies. Previous surgery in 2015."
+}
+```
+
+## Error Responses
+
+<ResponseExample>
+```json 400 Bad Request
+{
+  "error": "Validation failed",
+  "message": "CPF must be exactly 11 characters"
+}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 409 Conflict
+{
+  "error": "Patient already exists",
+  "message": "A patient with this CPF or email already exists"
+}
+```
+</ResponseExample>
+
+<ResponseExample>
+```json 500 Internal Server Error
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+</ResponseExample>
+
+## Notes
+
+- CPF must be unique and exactly 11 characters long
+- Email must be unique in the system
+- Password is stored securely and never returned in API responses
+- All required fields must be provided or the request will fail
+- Date of birth must be in ISO 8601 format (YYYY-MM-DD)

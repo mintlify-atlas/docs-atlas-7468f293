@@ -1,0 +1,110 @@
+---
+title: 'Create Admin'
+api: 'POST /admin/create'
+---
+
+Creates a new administrator account in the system.
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  Full name of the administrator
+  
+  Example: `"John Smith"`
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address for the administrator account
+  
+  Example: `"admin@medagenda.com"`
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Password for the administrator account
+  
+  **Security Note**: Password should be strong and meet security requirements
+</ParamField>
+
+## Response
+
+<ResponseField name="userId" type="string">
+  Auto-generated UUID for the admin user
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Full name of the administrator
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email address of the administrator
+</ResponseField>
+
+<ResponseField name="password" type="string">
+  Encrypted password (returned as stored in database)
+</ResponseField>
+
+<ResponseField name="creationTimestamp" type="string">
+  ISO timestamp when the admin account was created
+</ResponseField>
+
+<ResponseField name="updatedTimestamp" type="string">
+  ISO timestamp when the admin account was last updated
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST http://localhost:8080/admin/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "email": "admin@medagenda.com",
+    "password": "SecurePassword123!"
+  }'
+```
+
+```java Java
+Admin admin = new Admin();
+admin.setName("John Smith");
+admin.setEmail("admin@medagenda.com");
+admin.setPassword("SecurePassword123!");
+
+ResponseEntity<Admin> response = adminController.createAdmin(admin);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response (200)
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Smith",
+  "email": "admin@medagenda.com",
+  "password": "$2a$10$encrypted_password_hash",
+  "creationTimestamp": "2024-03-15T10:30:00Z",
+  "updatedTimestamp": "2024-03-15T10:30:00Z"
+}
+```
+
+</ResponseExample>
+
+## Security Considerations
+
+<Warning>
+  **Important Security Notes**:
+  - This endpoint should be protected and only accessible to existing administrators
+  - Passwords should be encrypted before storage (ensure encryption is implemented in the service layer)
+  - Consider implementing rate limiting to prevent abuse
+  - Validate email format and uniqueness before creating the account
+  - Implement strong password requirements (minimum length, complexity, etc.)
+  - Consider adding email verification before activating the account
+  - The password returned in the response should ideally be omitted or masked in production
+</Warning>
+
+## Notes
+
+- The `userId` is auto-generated and should not be included in the request
+- The `creationTimestamp` and `updatedTimestamp` are automatically set by the system
+- Email addresses should be unique across all admin accounts
+- Ensure proper authentication and authorization are in place before exposing this endpoint in production

@@ -1,0 +1,324 @@
+---
+title: Patient Guide
+description: Complete guide for patients using Med Agenda
+icon: user
+---
+
+This guide will walk you through all patient features in Med Agenda, from account creation to managing your appointments and viewing your medical history.
+
+## Getting Started
+
+### Registering a New Account
+
+To create your patient account in Med Agenda:
+
+<Steps>
+  <Step title="Navigate to Patient Registration">
+    Access the registration page at `/patient/register`
+    
+    You'll see the MedAgenda logo and a form titled "Registro de Paciente" (Patient Registration).
+  </Step>
+  
+  <Step title="Fill in Your Personal Information">
+    Complete all required fields in the registration form:
+    
+    - **Name**: Your full name
+    - **CPF**: Your CPF number (digits only, no formatting)
+    - **Date of Birth**: Select your birth date from the calendar picker
+    - **Address**: Your street address (optional)
+    - **Medical History**: Any relevant medical conditions, allergies, or medications (optional)
+    - **Email**: Your email address (required for login and notifications)
+    - **Password**: Create a secure password
+    
+    <Note>
+      The CPF field only accepts numbers. The system will automatically remove any formatting characters you enter.
+    </Note>
+  </Step>
+  
+  <Step title="Submit Registration">
+    Click the **"Registrar Paciente"** (Register Patient) button to create your account.
+    
+    If successful, you'll be redirected to the patient login page.
+  </Step>
+</Steps>
+
+### Logging In
+
+Once you have an account, you can log in to access your patient dashboard:
+
+<Steps>
+  <Step title="Access the Login Page">
+    Navigate to `/patient/login`
+    
+    You'll see "Você está acessando como Paciente" (You are accessing as Patient).
+  </Step>
+  
+  <Step title="Enter Your Credentials">
+    Provide your login information:
+    
+    - **Email**: The email address you registered with
+    - **Password**: Your account password
+    
+    <Note>
+      You can click the eye icon next to the password field to toggle password visibility.
+    </Note>
+  </Step>
+  
+  <Step title="Optional: Remember Me">
+    Check the **"Lembrar-me"** (Remember Me) checkbox if you want the system to keep you logged in.
+  </Step>
+  
+  <Step title="Sign In">
+    Click the **"Login"** button to access your dashboard.
+    
+    Upon successful login, you'll be redirected to `/patient/dash`.
+  </Step>
+</Steps>
+
+<Info>
+  Don't have an account yet? Click the **"Ainda não tem conta? Registrar"** (Don't have an account? Register) link on the login page to create one.
+</Info>
+
+## Finding and Scheduling Appointments
+
+### Searching for Doctors by Specialty
+
+Med Agenda allows you to find doctors based on their specialty:
+
+<Tabs>
+  <Tab title="Using the Search Feature">
+    The system maintains a list of doctors with their specialties. When scheduling an appointment, you can:
+    
+    1. View all available doctors in the dropdown menu
+    2. See each doctor's name and CRM number
+    3. Review their specialty information before selecting
+    
+    Common specialties available include:
+    - Cardiology
+    - Dermatology
+    - Pediatrics
+    - Orthopedics
+    - General Practice
+    - And many more
+  </Tab>
+  
+  <Tab title="Doctor Information">
+    Each doctor listing shows:
+    - **Name**: The doctor's full name
+    - **CRM**: Their medical registration number
+    - **Specialty**: Their area of medical expertise
+    - **Contact**: Telephone number for inquiries
+  </Tab>
+</Tabs>
+
+### Scheduling an Appointment
+
+To book a new consultation:
+
+<Steps>
+  <Step title="Access the Scheduling Page">
+    Navigate to the **"Agendar Nova Consulta"** (Schedule New Appointment) section from your patient dashboard.
+  </Step>
+  
+  <Step title="Select Date and Time">
+    Choose when you'd like your appointment:
+    
+    - Click the **"Data e Hora da Consulta"** (Consultation Date and Time) field
+    - Select your preferred date and time using the datetime picker
+    
+    <Warning>
+      Make sure to select a future date and time. Past dates will not be accepted.
+    </Warning>
+  </Step>
+  
+  <Step title="Choose Your Doctor">
+    Select a doctor from the dropdown menu:
+    
+    - Browse the list of available doctors
+    - Each entry shows the doctor's name and CRM number
+    - Select the doctor you wish to see
+  </Step>
+  
+  <Step title="Mark as Urgent (Optional)">
+    If your consultation is urgent, check the **"Consulta Urgente"** (Urgent Consultation) checkbox.
+    
+    This helps prioritize your appointment.
+  </Step>
+  
+  <Step title="Add Observations (Optional)">
+    Use the **"Observações"** (Observations) field to:
+    
+    - Describe your symptoms
+    - Mention specific concerns
+    - Provide any relevant context for your visit
+  </Step>
+  
+  <Step title="Confirm Your Appointment">
+    Click the **"Agendar Consulta"** (Schedule Appointment) button.
+    
+    You'll see a success message: "Consulta agendada com sucesso!" (Appointment scheduled successfully!)
+  </Step>
+</Steps>
+
+<Note>
+  You must be logged in to schedule appointments. The system uses your stored CPF and email to create the appointment.
+</Note>
+
+## Managing Your Appointments
+
+### Viewing Your Dashboard
+
+Your patient dashboard (`/patient/dash`) displays:
+
+- **Total Consultations**: A count of all your scheduled and past appointments
+- Quick statistics about your healthcare journey
+- Easy navigation to schedule new appointments or view history
+
+### Viewing Appointment History
+
+To review your past consultations:
+
+<Steps>
+  <Step title="Access History Page">
+    Navigate to the **"Histórico Médico"** (Medical History) section.
+  </Step>
+  
+  <Step title="Review Past Appointments">
+    Your history shows all consultations that occurred before today, including:
+    
+    - **Date**: When the consultation took place (formatted as DD/MM/YYYY)
+    - **Doctor Name**: The attending physician
+    - **Specialty**: The doctor's medical specialty
+    - **Contact**: The doctor's telephone number
+    - **Observations**: Any notes from the appointment
+  </Step>
+</Steps>
+
+<Info>
+  If you haven't had any appointments yet, you'll see the message: "Você ainda não tem histórico de consultas" (You don't have any consultation history yet).
+</Info>
+
+## Email Notifications
+
+Med Agenda keeps you informed through automatic email notifications:
+
+### Appointment Confirmation
+
+When you schedule a new appointment, the system:
+
+1. **Sends a confirmation email** to the address associated with your account
+2. **Includes appointment details**:
+   - Date and time of your consultation
+   - Doctor's name and specialty
+   - Clinic location (if applicable)
+   - Any special instructions
+
+<Note>
+  Make sure your email address is correct in your profile to receive important notifications about your healthcare.
+</Note>
+
+### Email Best Practices
+
+<Tabs>
+  <Tab title="Check Your Inbox">
+    - Always check your email after scheduling an appointment
+    - Add the Med Agenda email address to your contacts to prevent messages from going to spam
+    - Keep confirmation emails for your records
+  </Tab>
+  
+  <Tab title="Update Contact Information">
+    If you need to update your email address:
+    
+    - Contact your clinic administrator
+    - Provide your CPF and new email address
+    - Verify the change by checking for a test email
+  </Tab>
+</Tabs>
+
+## Tips for Patients
+
+<CardGroup cols={2}>
+  <Card title="Before Your Appointment" icon="calendar-check">
+    - Arrive 10-15 minutes early
+    - Bring your ID and insurance card
+    - Prepare a list of current medications
+    - Write down questions for your doctor
+  </Card>
+  
+  <Card title="Using the System" icon="computer">
+    - Log out after each session on shared computers
+    - Keep your password secure
+    - Update your medical history when it changes
+    - Schedule appointments in advance when possible
+  </Card>
+  
+  <Card title="Communication" icon="envelope">
+    - Check your email regularly for appointment reminders
+    - Use the observations field to communicate important information
+    - Contact the clinic directly for urgent matters
+  </Card>
+  
+  <Card title="Medical History" icon="file-medical">
+    - Review your appointment history periodically
+    - Keep track of your consultations
+    - Note any patterns in your health
+    - Share relevant history with new doctors
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+<AccordionGroup>
+  <Accordion title="I can't log in to my account">
+    **Possible solutions:**
+    
+    - Double-check that you're using the correct email address
+    - Verify your password (remember it's case-sensitive)
+    - Try clicking the eye icon to see your password as you type
+    - If you've forgotten your password, contact the clinic administrator to reset it
+  </Accordion>
+  
+  <Accordion title="I don't see any doctors when trying to schedule">
+    **Possible causes:**
+    
+    - The clinic may not have added doctors to the system yet
+    - There may be a temporary system issue
+    - Contact your clinic administrator for assistance
+  </Accordion>
+  
+  <Accordion title="My appointment isn't showing in my history">
+    **Check the following:**
+    
+    - History only shows past appointments (before today)
+    - Future appointments won't appear in history
+    - Make sure the appointment date has passed
+    - Verify you're logged in with the correct account
+  </Accordion>
+  
+  <Accordion title="I didn't receive a confirmation email">
+    **Steps to resolve:**
+    
+    - Check your spam/junk folder
+    - Verify your email address is correct in your profile
+    - Wait a few minutes - emails may be delayed
+    - Contact the clinic to confirm your appointment was created
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  For urgent medical issues, always call your clinic directly or seek emergency medical attention. Do not rely solely on the online system for urgent care.
+</Warning>
+
+## Getting Help
+
+If you need assistance with Med Agenda:
+
+- **Technical Support**: Contact your clinic administrator
+- **Appointment Questions**: Call the clinic directly
+- **Account Issues**: Visit the clinic in person with your ID
+
+<Info>
+  Keep your clinic's phone number handy for quick access to support and emergency situations.
+</Info>

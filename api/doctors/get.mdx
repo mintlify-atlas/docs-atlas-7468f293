@@ -1,0 +1,112 @@
+---
+title: 'Search Doctors'
+api: 'GET /doctor/search'
+---
+
+Search for doctors using various criteria. Only one query parameter should be provided at a time.
+
+## Query Parameters
+
+<ParamField query="crm" type="string">
+  Search by CRM (Medical Registration) number.
+</ParamField>
+
+<ParamField query="name" type="string">
+  Search by doctor's name (partial match).
+</ParamField>
+
+<ParamField query="specialty" type="string">
+  Search by medical specialty.
+</ParamField>
+
+<ParamField query="email" type="string">
+  Search by email address.
+</ParamField>
+
+## Response
+
+Returns an array of matching doctor objects.
+
+<ResponseField name="[]" type="array">
+  Array of Doctor objects matching the search criteria.
+  
+  <ResponseField name="crm" type="string">
+    Doctor's CRM number.
+  </ResponseField>
+  
+  <ResponseField name="email" type="string">
+    Doctor's email address.
+  </ResponseField>
+  
+  <ResponseField name="password" type="string">
+    Doctor's password.
+  </ResponseField>
+  
+  <ResponseField name="name" type="string">
+    Doctor's full name.
+  </ResponseField>
+  
+  <ResponseField name="specialty" type="string">
+    Doctor's medical specialty.
+  </ResponseField>
+  
+  <ResponseField name="telephone" type="string">
+    Doctor's telephone number.
+  </ResponseField>
+  
+  <ResponseField name="consultationValue" type="number">
+    Consultation price.
+  </ResponseField>
+</ResponseField>
+
+## Example Requests
+
+### Search by CRM
+
+```bash
+curl -X GET "http://localhost:8080/doctor/search?crm=123456789"
+```
+
+### Search by Name
+
+```bash
+curl -X GET "http://localhost:8080/doctor/search?name=Silva"
+```
+
+### Search by Specialty
+
+```bash
+curl -X GET "http://localhost:8080/doctor/search?specialty=Cardiology"
+```
+
+### Search by Email
+
+```bash
+curl -X GET "http://localhost:8080/doctor/search?email=dr.silva@hospital.com"
+```
+
+## Example Response
+
+```json
+[
+  {
+    "crm": "123456789",
+    "email": "dr.silva@hospital.com",
+    "password": "securePassword123",
+    "name": "Dr. João Silva",
+    "specialty": "Cardiology",
+    "telephone": "+5534999887766",
+    "consultationValue": 250.00
+  }
+]
+```
+
+## Error Responses
+
+<ResponseField name="400 Bad Request" type="error">
+  No search parameter provided. At least one query parameter (crm, name, specialty, or email) is required.
+</ResponseField>
+
+<ResponseField name="200 OK (Empty Array)" type="success">
+  No doctors found matching the search criteria. Returns an empty array `[]`.
+</ResponseField>

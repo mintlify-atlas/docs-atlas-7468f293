@@ -1,80 +1,424 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get Med Agenda up and running in minutes with Docker Compose
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+Get Med Agenda running locally in under 5 minutes using Docker Compose. This guide will walk you through setting up the complete application stack including the backend API, frontend, and database.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  This quick start is designed for development and testing. For production deployment, see the [Deployment Guide](/deployment/installation).
 </Note>
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+<Steps>
+  <Step title="Docker & Docker Compose">
+    Docker Engine 20.10+ and Docker Compose V2+
+    
+    ```bash
+    # Verify Docker installation
+    docker --version
+    docker compose version
+    ```
+    
+    <Info>
+      Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop) for Windows and Mac, or install Docker Engine for Linux.
+    </Info>
+  </Step>
+  
+  <Step title="Git">
+    Git for cloning the repository
+    
+    ```bash
+    # Verify Git installation
+    git --version
+    ```
+  </Step>
+  
+  <Step title="System Requirements">
+    Minimum recommended specifications:
+    - **CPU**: 2 cores
+    - **RAM**: 4GB available
+    - **Disk**: 2GB free space
+    - **OS**: Linux, macOS, or Windows with WSL2
+  </Step>
+</Steps>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the Med Agenda repository from GitHub:
+    
+    ```bash
+    git clone https://github.com/nathanmota-dev/med-agenda.git
+    cd med-agenda
+    ```
+    
+    This will download the complete source code including both backend and frontend applications.
+  </Step>
+  
+  <Step title="Configure Environment Variables">
+    Create a `.env` file in the backend directory with your configuration:
+    
+    ```bash
+    cd backend/gestaoConsultasMedicas
+    cp .env.example .env
+    ```
+    
+    Edit the `.env` file with your settings:
+    
+    ```bash
+    # Database Configuration
+    SPRING_DATASOURCE_URL=jdbc:postgresql://your-database-host:5432/medagenda
+    SPRING_DATASOURCE_USERNAME=your_username
+    SPRING_DATASOURCE_PASSWORD=your_password
+    
+    # Email Service (Resend)
+    RESEND_API_KEY=your_resend_api_key
+    
+    # Application Settings
+    SERVER_PORT=8080
+    SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    SPRING_JPA_SHOW_SQL=true
+    ```
+    
+    <Warning>
+      **Database Setup Required**: You need a PostgreSQL database. We recommend using [Neon.tech](https://neon.tech) for a free managed PostgreSQL instance.
+    </Warning>
+    
+    ### Get a Free PostgreSQL Database
+    
+    1. Sign up at [Neon.tech](https://neon.tech)
+    2. Create a new project
+    3. Copy the connection string
+    4. Update `SPRING_DATASOURCE_URL` in your `.env` file
+    
+    ### Get Email Service API Key
+    
+    1. Sign up at [Resend.com](https://resend.com)
+    2. Create an API key
+    3. Update `RESEND_API_KEY` in your `.env` file
+    
+    <Note>
+      The email service is optional for testing. The application will work without it, but appointment confirmation emails won't be sent.
+    </Note>
+  </Step>
+  
+  <Step title="Build and Run with Docker Compose">
+    Build and start the application using Docker Compose:
+    
+    ```bash
+    # From the backend directory
+    docker compose up --build
+    ```
+    
+    This command will:
+    - Build the Spring Boot backend application
+    - Create a Docker image named `med-agenda:latest`
+    - Start the API server on port 8080
+    - Load environment variables from `.env`
+    
+    <Info>
+      The first build may take 5-10 minutes as Maven downloads dependencies. Subsequent builds will be much faster thanks to Docker layer caching.
+    </Info>
+    
+    ### Run in Detached Mode
+    
+    To run the containers in the background:
+    
+    ```bash
+    docker compose up -d
+    ```
+    
+    ### View Logs
+    
+    ```bash
+    docker compose logs -f api
+    ```
+  </Step>
+  
+  <Step title="Start the Frontend">
+    In a new terminal, navigate to the frontend directory and start the development server:
+    
+    ```bash
+    cd frontend
+    npm install
+    npm run dev
+    ```
+    
+    The frontend will be available at `http://localhost:5173`
+    
+    <Note>
+      Make sure you have Node.js 18+ and npm installed. Check with `node --version` and `npm --version`.
+    </Note>
+  </Step>
+  
+  <Step title="Verify the Installation">
+    Test that everything is working:
+    
+    **Backend Health Check:**
+    ```bash
+    curl http://localhost:8080/
+    ```
+    
+    You should see: `Hello World`
+    
+    **Frontend Access:**
+    Open your browser to `http://localhost:5173`
+    
+    You should see the Med Agenda login page.
+  </Step>
+</Steps>
+
+## First Steps
+
+Now that Med Agenda is running, let's set up your first users and test the system.
+
+<Steps>
+  <Step title="Create an Admin Account">
+    Create an administrator account to manage the system:
+    
+    ```bash
+    curl -X POST http://localhost:8080/admin/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "admin@medagenda.com",
+        "password": "admin123",
+        "name": "System Administrator"
+      }'
+    ```
+    
+    Save the returned admin ID for future reference.
+  </Step>
+  
+  <Step title="Register a Doctor">
+    Add a doctor to the system:
+    
+    ```bash
+    curl -X POST http://localhost:8080/doctor/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "crm": "123456789",
+        "email": "doctor@medagenda.com",
+        "password": "doctor123",
+        "name": "Dr. Maria Silva",
+        "specialty": "Cardiologia",
+        "telephone": "5511999999999",
+        "consultationValue": 200.00
+      }'
+    ```
+    
+    <Info>
+      The CRM is the Brazilian medical license number. Use any 9-digit number for testing.
+    </Info>
+  </Step>
+  
+  <Step title="Register a Patient">
+    Create a patient account:
+    
+    ```bash
+    curl -X POST http://localhost:8080/patients/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "cpf": "12345678901",
+        "email": "patient@example.com",
+        "password": "patient123",
+        "name": "João Santos",
+        "dateOfBirth": "1990-01-15",
+        "address": "Rua Example, 123",
+        "medicalHistory": "No previous conditions"
+      }'
+    ```
+    
+    <Note>
+      CPF is the Brazilian national ID. Use any 11-digit number for testing.
+    </Note>
+  </Step>
+  
+  <Step title="Schedule a Consultation">
+    Book your first appointment:
+    
+    ```bash
+    curl -X POST http://localhost:8080/consultations/create \
+      -H "Content-Type: application/json" \
+      -d '{
+        "patient": {
+          "cpf": "12345678901"
+        },
+        "doctor": {
+          "crm": "123456789"
+        },
+        "dateTime": "2026-03-15T14:00:00",
+        "isUrgent": false,
+        "observation": "Regular checkup"
+      }'
+    ```
+    
+    The patient will receive an email confirmation (if Resend is configured).
+  </Step>
+  
+  <Step title="Explore the Frontend">
+    Open the frontend at `http://localhost:5173` and:
+    
+    1. **Login as Patient**: Use CPF `12345678901` and password `patient123`
+    2. **View Appointments**: See your scheduled consultation
+    3. **Login as Doctor**: Use CRM `123456789` and password `doctor123`
+    4. **Manage Consultations**: View patient appointments
+  </Step>
+</Steps>
+
+## API Testing
+
+Explore the REST API with these common operations:
+
+### List All Consultations
+
+```bash
+curl http://localhost:8080/consultations/all
+```
+
+### Get Patient History
+
+```bash
+curl http://localhost:8080/consultations/patient-history/12345678901
+```
+
+### Search Doctors by Specialty
+
+```bash
+curl "http://localhost:8080/doctor/search?specialty=Cardiologia"
+```
+
+### Create a Diagnosis
+
+```bash
+curl -X POST http://localhost:8080/diagnosis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "descricao": "Hipertensão arterial sistêmica",
+    "data": "2026-03-15",
+    "consulta": {
+      "consultationId": "<consultation-uuid>"
+    },
+    "cid": "I10"
+  }'
+```
+
+<Card title="Complete API Reference" icon="book" href="/api/overview">
+  Explore all available API endpoints with detailed documentation
+</Card>
+
+## Stopping the Application
+
+To stop the running containers:
+
+```bash
+# Stop and remove containers
+docker compose down
+
+# Stop, remove containers, and delete volumes
+docker compose down -v
+```
+
+To stop the frontend development server, press `Ctrl+C` in the terminal.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 8080 already in use">
+    If port 8080 is already occupied, you can change it in two ways:
+    
+    1. **Modify docker-compose.yml**:
+    ```yaml
+    ports:
+      - "8081:8080"  # Use port 8081 instead
+    ```
+    
+    2. **Set in .env file**:
+    ```bash
+    SERVER_PORT=8081
+    ```
+  </Accordion>
+  
+  <Accordion title="Database connection failed">
+    Ensure your database credentials are correct in the `.env` file:
+    
+    ```bash
+    # Test PostgreSQL connection
+    psql -h your-host -U your-username -d your-database
+    ```
+    
+    Common issues:
+    - Incorrect hostname or port
+    - Wrong username/password
+    - Database doesn't exist (create it first)
+    - Firewall blocking connections
+  </Accordion>
+  
+  <Accordion title="Email notifications not working">
+    Email functionality requires a valid Resend API key:
+    
+    1. Verify your API key at [Resend Dashboard](https://resend.com/api-keys)
+    2. Ensure `RESEND_API_KEY` is set in `.env`
+    3. Check application logs for email errors
+    
+    The application will work without email, but notifications won't be sent.
+  </Accordion>
+  
+  <Accordion title="Frontend can't connect to backend">
+    Ensure the API URL is correctly configured in the frontend:
+    
+    Check `frontend/src/api/config.ts` or similar configuration file:
+    ```typescript
+    const API_BASE_URL = 'http://localhost:8080';
+    ```
+    
+    Also verify CORS is enabled in the backend (it should be by default).
+  </Accordion>
+  
+  <Accordion title="Docker build fails">
+    Common solutions:
+    
+    1. **Clear Docker cache**:
+    ```bash
+    docker builder prune
+    docker compose build --no-cache
+    ```
+    
+    2. **Check disk space**:
+    ```bash
+    docker system df
+    docker system prune
+    ```
+    
+    3. **Verify Java and Maven** in the Dockerfile
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have Med Agenda running, explore these resources:
+
+<CardGroup cols={2}>
+  <Card title="Features Overview" icon="stars" href="/features">
+    Learn about all available features
+  </Card>
+  <Card title="API Documentation" icon="code" href="/api/overview">
+    Complete REST API reference
+  </Card>
+  <Card title="User Guides" icon="book-open" href="/guides/patient-guide">
+    Detailed guides for patients and doctors
+  </Card>
+  <Card title="Production Deployment" icon="server" href="/deployment/installation">
+    Deploy Med Agenda to production
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Security Notice**: The default credentials in this guide are for development only. Always use strong passwords and proper authentication in production environments.
+</Warning>

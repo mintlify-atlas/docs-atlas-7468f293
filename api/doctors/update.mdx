@@ -1,0 +1,116 @@
+---
+title: 'Update Doctor'
+api: 'PUT /doctor/{crm}'
+---
+
+Update an existing doctor's information by CRM number.
+
+## Path Parameters
+
+<ParamField path="crm" type="string" required>
+  The CRM number of the doctor to update.
+</ParamField>
+
+## Request Body
+
+<ParamField body="crm" type="string">
+  Updated CRM number (optional, use with caution as it's the primary identifier).
+</ParamField>
+
+<ParamField body="email" type="string">
+  Updated email address.
+</ParamField>
+
+<ParamField body="password" type="string">
+  Updated password.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Updated full name.
+</ParamField>
+
+<ParamField body="specialty" type="string">
+  Updated medical specialty.
+</ParamField>
+
+<ParamField body="telephone" type="string">
+  Updated telephone number.
+</ParamField>
+
+<ParamField body="consultationValue" type="number">
+  Updated consultation price.
+</ParamField>
+
+## Response
+
+<ResponseField name="crm" type="string">
+  Doctor's CRM number.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Doctor's email address.
+</ResponseField>
+
+<ResponseField name="password" type="string">
+  Doctor's password.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Doctor's full name.
+</ResponseField>
+
+<ResponseField name="specialty" type="string">
+  Doctor's medical specialty.
+</ResponseField>
+
+<ResponseField name="telephone" type="string">
+  Doctor's telephone number.
+</ResponseField>
+
+<ResponseField name="consultationValue" type="number">
+  Consultation price.
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X PUT http://localhost:8080/doctor/123456789 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "crm": "123456789",
+    "email": "dr.silva.updated@hospital.com",
+    "password": "newSecurePassword123",
+    "name": "Dr. João Silva",
+    "specialty": "Cardiology",
+    "telephone": "+5534999887766",
+    "consultationValue": 300.00
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "crm": "123456789",
+  "email": "dr.silva.updated@hospital.com",
+  "password": "newSecurePassword123",
+  "name": "Dr. João Silva",
+  "specialty": "Cardiology",
+  "telephone": "+5534999887766",
+  "consultationValue": 300.00
+}
+```
+
+## Error Responses
+
+<ResponseField name="404 Not Found" type="error">
+  Doctor with the specified CRM number not found.
+</ResponseField>
+
+<ResponseField name="400 Bad Request" type="error">
+  Invalid request body or data validation failed.
+</ResponseField>
+
+<ResponseField name="409 Conflict" type="error">
+  Updated email or CRM conflicts with an existing doctor.
+</ResponseField>

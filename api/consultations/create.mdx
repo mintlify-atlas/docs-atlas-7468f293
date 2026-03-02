@@ -1,0 +1,233 @@
+---
+title: 'Create Consultation'
+api: 'POST /consultations/create'
+description: 'Schedule a new consultation and automatically create a pending payment record'
+---
+
+Creates a new consultation in the system. This endpoint validates that both the patient (by CPF) and doctor (by CRM) exist in the database before scheduling. Upon successful creation, a payment record is automatically created with PENDING status, and a confirmation email is sent.
+
+## Request Body
+
+<ParamField body="patient" type="object" required>
+  Patient information object
+  
+  <Expandable title="Patient properties">
+    <ParamField body="cpf" type="string" required>
+      Patient's CPF (11 digits) - must exist in the database
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="doctor" type="object" required>
+  Doctor information object
+  
+  <Expandable title="Doctor properties">
+    <ParamField body="crm" type="string" required>
+      Doctor's CRM number (up to 9 characters) - must exist in the database
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="dateTime" type="string" required>
+  Consultation date and time in ISO 8601 format (e.g., "2024-03-15T14:30:00")
+</ParamField>
+
+<ParamField body="isUrgent" type="boolean" required>
+  Whether this is an urgent consultation
+</ParamField>
+
+<ParamField body="observation" type="string">
+  Additional notes or observations for the consultation
+</ParamField>
+
+## Response
+
+<ResponseField name="consultationId" type="string">
+  UUID of the created consultation
+</ResponseField>
+
+<ResponseField name="dateTime" type="string">
+  Scheduled date and time of the consultation
+</ResponseField>
+
+<ResponseField name="duracaoMinutos" type="integer">
+  Duration of the consultation in minutes (default: 60)
+</ResponseField>
+
+<ResponseField name="patient" type="object">
+  Complete patient information
+  
+  <Expandable title="Patient object">
+    <ResponseField name="cpf" type="string">
+      Patient's CPF
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Patient's full name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Patient's email address
+    </ResponseField>
+    <ResponseField name="dateOfBirth" type="string">
+      Patient's date of birth
+    </ResponseField>
+    <ResponseField name="address" type="string">
+      Patient's address
+    </ResponseField>
+    <ResponseField name="medicalHistory" type="string">
+      Patient's medical history
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="doctor" type="object">
+  Complete doctor information
+  
+  <Expandable title="Doctor object">
+    <ResponseField name="crm" type="string">
+      Doctor's CRM number
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Doctor's full name
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      Doctor's email address
+    </ResponseField>
+    <ResponseField name="specialty" type="string">
+      Doctor's medical specialty
+    </ResponseField>
+    <ResponseField name="telephone" type="string">
+      Doctor's phone number
+    </ResponseField>
+    <ResponseField name="consultationValue" type="number">
+      Doctor's consultation fee
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="isUrgent" type="boolean">
+  Whether this is an urgent consultation
+</ResponseField>
+
+<ResponseField name="observation" type="string">
+  Additional notes or observations
+</ResponseField>
+
+## Side Effects
+
+### Payment Creation
+A payment record is automatically created with:
+- Amount set to the doctor's `consultationValue`
+- Status set to `PENDING`
+- Linked to the created consultation
+
+### Email Notification
+A confirmation email is sent to `delivered@resend.dev` with:
+- Subject: "Consulta confirmada"
+- Body: "Sua consulta foi marcada para [dateTime]"
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.medagenda.com/consultations/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient": {
+      "cpf": "12345678901"
+    },
+    "doctor": {
+      "crm": "123456SP"
+    },
+    "dateTime": "2024-03-15T14:30:00",
+    "isUrgent": false,
+    "observation": "Patient reports mild headaches for the past week"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.medagenda.com/consultations/create', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    patient: {
+      cpf: '12345678901'
+    },
+    doctor: {
+      crm: '123456SP'
+    },
+    dateTime: '2024-03-15T14:30:00',
+    isUrgent: false,
+    observation: 'Patient reports mild headaches for the past week'
+  })
+});
+
+const consultation = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.medagenda.com/consultations/create',
+    json={
+        'patient': {
+            'cpf': '12345678901'
+        },
+        'doctor': {
+            'crm': '123456SP'
+        },
+        'dateTime': '2024-03-15T14:30:00',
+        'isUrgent': False,
+        'observation': 'Patient reports mild headaches for the past week'
+    }
+)
+
+consultation = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 - Success
+{
+  "consultationId": "550e8400-e29b-41d4-a716-446655440000",
+  "dateTime": "2024-03-15T14:30:00",
+  "duracaoMinutos": 60,
+  "patient": {
+    "cpf": "12345678901",
+    "name": "João Silva",
+    "email": "joao.silva@email.com",
+    "dateOfBirth": "1985-06-15",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "medicalHistory": "Hypertension, controlled with medication"
+  },
+  "doctor": {
+    "crm": "123456SP",
+    "name": "Dr. Maria Santos",
+    "email": "maria.santos@medagenda.com",
+    "specialty": "Cardiologia",
+    "telephone": "+5511987654321",
+    "consultationValue": 350.00
+  },
+  "isUrgent": false,
+  "observation": "Patient reports mild headaches for the past week"
+}
+```
+
+```json 400 - Patient Not Found
+{
+  "error": "IllegalArgumentException",
+  "message": "Paciente com CPF 12345678901 não encontrado."
+}
+```
+
+```json 400 - Doctor Not Found
+{
+  "error": "IllegalArgumentException",
+  "message": "Médico com CRM 123456SP não encontrado."
+}
+```
+
+</ResponseExample>

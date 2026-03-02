@@ -1,0 +1,603 @@
+---
+title: Frontend Development
+description: Guide to developing the Med Agenda React frontend application
+---
+
+# Frontend Development
+
+The Med Agenda frontend is a modern single-page application (SPA) built with React 18, Vite, and TypeScript, featuring role-based dashboards for administrators, doctors, and patients.
+
+## Technology Stack
+
+### Core Technologies
+
+- **React 18.3.1**: UI library with hooks and modern features
+- **Vite 5.4.9**: Next-generation build tool with fast HMR
+- **TypeScript 5.6.2**: Type-safe JavaScript development
+- **React Router DOM 6.27.0**: Client-side routing
+
+### UI & Styling
+
+- **Tailwind CSS 3.4.14**: Utility-first CSS framework
+- **Radix UI**: Accessible, unstyled UI primitives
+  - `@radix-ui/react-label`
+  - `@radix-ui/react-select`
+  - `@radix-ui/react-scroll-area`
+  - `@radix-ui/react-separator`
+  - `@radix-ui/react-slot`
+- **Lucide React 0.453.0**: Beautiful icon library
+- **Class Variance Authority**: Component variant management
+- **Tailwind Merge**: Merge Tailwind classes efficiently
+- **Tailwindcss Animate**: Animation utilities
+
+### HTTP & State
+
+- **Axios 1.7.7**: Promise-based HTTP client
+- **React Hooks**: Built-in state management
+- **dotenv 16.4.5**: Environment variable management
+
+### Development Tools
+
+- **ESLint 9.13.0**: Code linting
+- **TypeScript ESLint**: TypeScript-specific linting rules
+- **Vite Plugin React**: React support for Vite
+- **PostCSS & Autoprefixer**: CSS processing
+
+## Project Structure
+
+```
+frontend/
+├── public/                  # Static assets
+│   └── logo2.png           # Application logo
+├── src/
+│   ├── api/                # API client configuration
+│   │   ├── api.ts         # Axios instance
+│   │   └── cid.ts         # CID-related API calls
+│   ├── assets/            # Images, fonts, etc.
+│   ├── components/        # Reusable components
+│   │   ├── ai/           # AI chat components
+│   │   │   └── ChatAI.tsx
+│   │   ├── layout/       # Layout components
+│   │   │   └── public-layout/
+│   │   ├── navbar/       # Navigation components
+│   │   ├── others/       # Utility components
+│   │   │   └── Layout.tsx
+│   │   ├── register-form/ # Registration forms
+│   │   └── ui/           # Reusable UI primitives
+│   ├── lib/              # Utility functions
+│   ├── pages/            # Page components
+│   │   ├── admin/        # Admin dashboard pages
+│   │   │   ├── admin/
+│   │   │   ├── consultations/
+│   │   │   ├── dashboard.tsx
+│   │   │   ├── doctors/
+│   │   │   └── patients/
+│   │   ├── doctor/       # Doctor dashboard pages
+│   │   │   ├── agenda/
+│   │   │   ├── dashboard/
+│   │   │   ├── diagnostics/
+│   │   │   └── write-diagnostics/
+│   │   ├── patient/      # Patient dashboard pages
+│   │   │   ├── cancel/
+│   │   │   ├── consultation/
+│   │   │   └── dashboard/
+│   │   ├── landing-page/ # Public landing page
+│   │   ├── login/        # Login page
+│   │   └── scraping/     # Information scraping pages
+│   ├── App.tsx           # Main application component
+│   └── main.tsx          # Application entry point
+├── index.html            # HTML template
+├── package.json          # Dependencies and scripts
+├── tsconfig.json         # TypeScript configuration
+├── tailwind.config.js    # Tailwind CSS configuration
+├── vite.config.ts        # Vite configuration
+└── components.json       # Shadcn UI configuration
+```
+
+## React + Vite Setup
+
+### Entry Point
+
+**`main.tsx`**:
+```typescript
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+)
+```
+
+### Vite Configuration
+
+**`vite.config.ts`**:
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+})
+```
+
+## Routing with React Router DOM
+
+### Route Structure
+
+**`App.tsx`**:
+```typescript
+import { Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/landing-page';
+import Login from './pages/login';
+import Layout from './components/others/Layout';
+import PublicLayout from './components/layout/public-layout';
+import ChatAI from './components/ai/ChatAI';
+
+export default function App() {
+  return (
+    <>
+      <Routes>
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/information/pdf" element={<PdfScraping />} />
+          <Route path="/information/news" element={<NewsInformation />} />
+          <Route path="/information/doctor" element={<DoctorInformation />} />
+        </Route>
+
+        {/* Authentication */}
+        <Route path="/:userType/login" element={<Login />} />
+        <Route path="/:userType/register" element={<Register />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin/*" element={<Layout />}>
+          <Route path="dash" element={<AdminDashboard />} />
+          <Route path="dash/admin" element={<Admin />} />
+          <Route path="dash/doctors" element={<AdminDoctors />} />
+          <Route path="dash/patients" element={<AdminPatients />} />
+          <Route path="dash/consultations" element={<AdminConsultations />} />
+        </Route>
+
+        {/* Doctor Routes */}
+        <Route path="/doctor/*" element={<Layout />}>
+          <Route path="dash" element={<DoctorDashboard />} />
+          <Route path="agenda" element={<DoctorAgenda />} />
+          <Route path="diagnostics" element={<DoctorDiagnostics />} />
+          <Route path="write-diagnostics" element={<DoctorWriteDiagnostics />} />
+        </Route>
+
+        {/* Patient Routes */}
+        <Route path="/patient/*" element={<Layout />}>
+          <Route path="dash" element={<PatientDashboard />} />
+          <Route path="schedule" element={<PatientSchedule />} />
+          <Route path="consultations" element={<PatientConsultation />} />
+          <Route path="cancel" element={<PatientCancel />} />
+          <Route path="history" element={<PatientHistory />} />
+          <Route path="payments" element={<PatientPayments />} />
+        </Route>
+      </Routes>
+      
+      {/* Global Components */}
+      <ChatAI />
+    </>
+  )
+}
+```
+
+### Route Organization
+
+**Public Routes**:
+- `/` - Landing page
+- `/information/pdf` - PDF information scraping
+- `/information/news` - Medical news
+- `/information/doctor` - Doctor information
+
+**Authentication Routes**:
+- `/:userType/login` - Dynamic login (admin, doctor, patient)
+- `/:userType/register` - Dynamic registration
+
+**Protected Routes**:
+- `/admin/*` - Admin dashboard and management
+- `/doctor/*` - Doctor dashboard and tools
+- `/patient/*` - Patient dashboard and services
+
+## API Client Configuration
+
+### Axios Setup
+
+**`src/api/api.ts`**:
+```typescript
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_URL_API,
+});
+
+export default api;
+```
+
+### Environment Variables
+
+**`.env`** (create this file):
+```bash
+VITE_URL_API=http://localhost:8080
+```
+
+**`example.env`**:
+```bash
+VITE_URL_API=
+```
+
+### API Usage Example
+
+```typescript
+import api from '@/api/api';
+
+// Get all patients
+const getPatients = async () => {
+  try {
+    const response = await api.get('/patients/list');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    throw error;
+  }
+};
+
+// Create consultation
+const createConsultation = async (data: ConsultationDTO) => {
+  try {
+    const response = await api.post('/consultations/create', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating consultation:', error);
+    throw error;
+  }
+};
+
+// Login
+const login = async (cpf: string, password: string) => {
+  const response = await api.post('/patients/login', { cpf, password });
+  return response.data;
+};
+```
+
+## State Management
+
+### Local State with useState
+
+```typescript
+import { useState } from 'react';
+
+function PatientDashboard() {
+  const [consultations, setConsultations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const data = await api.get('/consultations/all');
+      setConsultations(data.data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+  
+  return (
+    <div>
+      {loading ? <Spinner /> : <ConsultationList data={consultations} />}
+    </div>
+  );
+}
+```
+
+### Form State
+
+```typescript
+import { useState, FormEvent } from 'react';
+
+function LoginForm() {
+  const [cpf, setCpf] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await api.post('/patients/login', { cpf, password });
+      // Handle success
+    } catch (err) {
+      setError('Invalid credentials');
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <input 
+        value={cpf} 
+        onChange={(e) => setCpf(e.target.value)} 
+        placeholder="CPF" 
+      />
+      <input 
+        type="password" 
+        value={password} 
+        onChange={(e) => setPassword(e.target.value)} 
+        placeholder="Password" 
+      />
+      {error && <p>{error}</p>}
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+## UI Components
+
+### Radix UI Primitives
+
+Med Agenda uses Radix UI for accessible, unstyled components:
+
+```typescript
+import * as Select from '@radix-ui/react-select';
+import * as Label from '@radix-ui/react-label';
+
+function DoctorSelect() {
+  return (
+    <div>
+      <Label.Root>Select Doctor</Label.Root>
+      <Select.Root>
+        <Select.Trigger>
+          <Select.Value placeholder="Choose a doctor" />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="dr-smith">Dr. Smith</Select.Item>
+          <Select.Item value="dr-jones">Dr. Jones</Select.Item>
+        </Select.Content>
+      </Select.Root>
+    </div>
+  );
+}
+```
+
+### Tailwind CSS Styling
+
+**`tailwind.config.js`**:
+```javascript
+module.exports = {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        // Custom theme colors
+      },
+      animation: {
+        // Custom animations
+      },
+    },
+  },
+  plugins: [require('tailwindcss-animate')],
+};
+```
+
+**Component Example**:
+```typescript
+function Button({ children, variant = 'primary' }) {
+  const baseStyles = 'px-4 py-2 rounded-lg font-medium transition-colors';
+  const variants = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
+    danger: 'bg-red-600 text-white hover:bg-red-700',
+  };
+  
+  return (
+    <button className={`${baseStyles} ${variants[variant]}`}>
+      {children}
+    </button>
+  );
+}
+```
+
+### Component Library Structure
+
+**`src/components/ui/`** contains reusable UI components built with Radix UI and Tailwind:
+
+- `button.tsx` - Button variants
+- `input.tsx` - Input fields
+- `select.tsx` - Dropdown select
+- `label.tsx` - Form labels
+- `card.tsx` - Card container
+- `scroll-area.tsx` - Scrollable area
+- `separator.tsx` - Visual divider
+
+## Build and Development Commands
+
+### Development
+
+```bash
+# Start development server with HMR
+npm run dev
+
+# Server runs on http://localhost:5173
+```
+
+### Build
+
+```bash
+# Type-check and build for production
+npm run build
+
+# Output in dist/ directory
+```
+
+### Preview
+
+```bash
+# Preview production build locally
+npm run preview
+```
+
+### Linting
+
+```bash
+# Run ESLint
+npm run lint
+```
+
+## TypeScript Configuration
+
+### `tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+```
+
+## Best Practices
+
+### Component Organization
+
+```typescript
+// 1. Imports
+import { useState, useEffect } from 'react';
+import api from '@/api/api';
+import { Button } from '@/components/ui/button';
+
+// 2. Types/Interfaces
+interface Patient {
+  cpf: string;
+  name: string;
+  email: string;
+}
+
+// 3. Component
+export default function PatientList() {
+  // State
+  const [patients, setPatients] = useState<Patient[]>([]);
+  
+  // Effects
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+  
+  // Handlers
+  const fetchPatients = async () => {
+    const response = await api.get('/patients/list');
+    setPatients(response.data);
+  };
+  
+  // Render
+  return (
+    <div>
+      {patients.map(patient => (
+        <div key={patient.cpf}>{patient.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Error Handling
+
+```typescript
+const [error, setError] = useState<string | null>(null);
+
+try {
+  const response = await api.get('/data');
+  setData(response.data);
+  setError(null);
+} catch (err) {
+  setError(err instanceof Error ? err.message : 'An error occurred');
+}
+```
+
+### Environment Variables
+
+- Prefix with `VITE_` to expose to client
+- Access via `import.meta.env.VITE_VARIABLE_NAME`
+- Never commit `.env` files with sensitive data
+
+## Development Workflow
+
+1. **Start Backend**: `cd backend/gestaoConsultasMedicas && mvn spring-boot:run`
+2. **Start Frontend**: `cd frontend && npm run dev`
+3. **Access App**: http://localhost:5173
+4. **Make Changes**: Hot Module Replacement (HMR) automatically updates
+5. **Build**: `npm run build` for production
+6. **Deploy**: Upload `dist/` to hosting (Vercel, Netlify, etc.)
+
+## Deployment
+
+### Vercel (Recommended)
+
+**`vercel.json`**:
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
+```
+
+### Build Configuration
+
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Node Version: 18.x or higher
+
+## Performance Optimization
+
+- **Code Splitting**: React Router automatically splits routes
+- **Lazy Loading**: Use `React.lazy()` for heavy components
+- **Memoization**: Use `useMemo` and `useCallback` for expensive operations
+- **Image Optimization**: Use WebP format and lazy loading
+- **Bundle Analysis**: Run `vite build --analyze` to inspect bundle size
+
+## Troubleshooting
+
+### CORS Issues
+
+If you encounter CORS errors, ensure the backend allows requests from `http://localhost:5173`.
+
+### API Connection
+
+Verify `.env` file has correct `VITE_URL_API` value.
+
+### TypeScript Errors
+
+Run `npm run build` to catch type errors before runtime.

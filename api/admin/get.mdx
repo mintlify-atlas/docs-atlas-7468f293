@@ -1,0 +1,112 @@
+---
+title: 'Get Admin by ID'
+api: 'GET /admin/{id}'
+---
+
+Retrieves an administrator's details by their unique user ID.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the administrator to retrieve
+  
+  Example: `"123e4567-e89b-12d3-a456-426614174000"`
+</ParamField>
+
+## Response
+
+<ResponseField name="userId" type="string">
+  The unique identifier for the admin user
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Full name of the administrator
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email address of the administrator
+</ResponseField>
+
+<ResponseField name="password" type="string">
+  Encrypted password hash
+</ResponseField>
+
+<ResponseField name="creationTimestamp" type="string">
+  ISO timestamp when the admin account was created
+</ResponseField>
+
+<ResponseField name="updatedTimestamp" type="string">
+  ISO timestamp when the admin account was last updated
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET http://localhost:8080/admin/123e4567-e89b-12d3-a456-426614174000
+```
+
+```java Java
+UUID adminId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+ResponseEntity<Admin> response = adminController.getAdminById(adminId);
+```
+
+```javascript JavaScript/Fetch
+const adminId = '123e4567-e89b-12d3-a456-426614174000';
+
+fetch(`http://localhost:8080/admin/${adminId}`, {
+  method: 'GET'
+})
+.then(response => response.json())
+.then(data => console.log(data));
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response (200)
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Smith",
+  "email": "admin@medagenda.com",
+  "password": "$2a$10$encrypted_password_hash",
+  "creationTimestamp": "2024-03-15T10:30:00Z",
+  "updatedTimestamp": "2024-03-15T10:30:00Z"
+}
+```
+
+```json Error Response (404)
+{}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseField name="404 Not Found" type="empty">
+  Returned when no admin exists with the specified ID
+  
+  **Response**: Empty response body with 404 status code
+</ResponseField>
+
+<ResponseField name="400 Bad Request" type="error">
+  Returned when the ID format is invalid (not a valid UUID)
+</ResponseField>
+
+## Security Considerations
+
+<Warning>
+  **Security Notes**:
+  - **Authentication Required**: This endpoint should require authentication to prevent unauthorized access to admin details
+  - **Authorization**: Only allow admins to view their own details, or restrict to super-admin roles
+  - **Password Exposure**: Consider removing the password field from the response, even if hashed
+  - **Audit Logging**: Log all attempts to access admin information for security monitoring
+  - **Rate Limiting**: Implement rate limiting to prevent enumeration attacks
+</Warning>
+
+## Notes
+
+- The ID must be a valid UUID format
+- The password is returned as a hashed value, but ideally should be omitted from the response
+- Use this endpoint to retrieve admin profile information or verify admin existence
+- The response includes automatic timestamps for creation and last update
